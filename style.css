@@ -21,6 +21,23 @@ body {
     font-size: 12px;
 }
 
+.app {
+    width: 100%;
+    max-width: 640px;
+    height: 960px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid black;
+}
+
+iframe {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    border: none;
+}
+
 /* instead of the allure style initially chosen, but i kinda want another cursive font to say the hello, name part like apple has the fancy hello*/
 h1 {
     font-family: 'DM Serif Display', serif;
