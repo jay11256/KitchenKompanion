@@ -103,3 +103,39 @@ button:active {
     margin-bottom: 24px;
 }
 
+
+/* NAVIGATION BAR */
+nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: var(--primary);
+    padding: 10px;
+    border-radius: 20px;
+    margin: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+nav button {
+    background: transparent;
+    color: var(--secondary);
+    box-shadow: none;
+    padding: 10px 8px;
+    font-size: 10px;
+    border-radius: 15px;
+    flex: 1;
+}
+
+nav button.active {
+    background-color: var(--highlight);
+    color: var(--bg);
+}
+
+nav button:hover {
+    background-color: var(--secondary);
+    color: var(--bg);
+}
+
+nav button.active:hover {
+    background-color: var(--highlight);
+}
