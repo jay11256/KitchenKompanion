@@ -6,17 +6,17 @@
 
 /* COLORS + FONT */
 :root {
-    --orange: #AA5B22;
-    --red: #92140C;
-    --cream: #FFF8F0;
-    --peach: #FFCF99;
-    --charcoal: #30343F;
+    --secondary: #AA5B22;
+    --highlight: #92140C;
+    --bg: #FFF8F0;
+    --primary: #FFCF99;
+    --text: #30343F;
 }
 
 body {
     margin: 0;
-    background: var(--cream);
-    color: var(--charcoal);
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Space Mono', monospace;
     font-size: 12px;
 }
@@ -38,8 +38,8 @@ h2 {
 
 /* BUTTONS */
 button {
-    background-color: var(--orange);
-    color: var(--cream);
+    background-color: var(--secondary);
+    color: var(--bg);
     font-family: 'Space Mono', monospace;
     font-size: 12px;
 
@@ -54,7 +54,7 @@ button {
 
 /* hover effect */
 button:hover {
-    background-color: var(--red);
+    background-color: var(--highlight);
 }
 
 /* clicked */
@@ -63,15 +63,15 @@ button:active {
 }
 
 .btn-secondary {
-    background-color: var(--peach);
-    color: var(--charcoal);
+    background-color: var(--primary);
+    color: var(--text);
 }
 
 
 /* CARDS */
 .card {
-    background-color: var(--peach);
-    /* is peach too chopped be honest */
+    background-color: var(--primary);
+    /* is primary too chopped be honest */
     padding: 16px;
     border-radius: 20px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
