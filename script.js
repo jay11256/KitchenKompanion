@@ -9,4 +9,4 @@ function openTab(filename, button) {
 
     // activates the active button hopefully highlights in the nav bar
     button.classList.add("active");
-}
+}code
