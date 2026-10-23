@@ -22,12 +22,18 @@
             <input type="text" id="itemInput"
                    placeholder="e.g. Milk">
 
+                   
             <button onclick="addItem()">Add Item +</button>
         </div>
 
         <div class="section">
-            <h2>My Shopping List</h2>
-            <div id="shoppingList"></div>
+            <div class="receipt">
+    <h2>MY SHOPPING LIST</h2>
+    <hr>
+    <div id="shoppingList"></div>
+    <hr>
+    <p>READY TO COOK, CHEF! ♡</p>
+</div>
         </div>
     </main>
 
@@ -60,8 +66,19 @@
             const remove = document.createElement("button");
             remove.textContent = "×";
             remove.onclick = () => item.remove();
+            remove.style.fontSize = "12px";
 
-            item.append(checkbox, label, remove);
+            // gonna be able to remove items from shopping list and add them to fridge when the add item page is done
+            // IMPLEMENT TSSSSSSSS 
+            const fridge = document.createElement("button");
+            fridge.textContent = "Add to Fridge";
+
+            fridge.onclick = () => {
+            // TODO: Pass item name to add-item.html and prefill name field.
+            window.parent.location.href = "add-item.html";
+        }  ;
+
+            item.append(checkbox, label, fridge, remove);
             list.appendChild(item);
 
             input.value = "";

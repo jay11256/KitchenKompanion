@@ -2,6 +2,7 @@
 /* ts the google icons thing i found initially but we can change them */
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Space+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Space+Mono&display=swap');
 
 
 /* COLORS + FONT */
@@ -40,7 +41,7 @@ iframe {
 
 /* instead of the allure style initially chosen, but i kinda want another cursive font to say the hello, name part like apple has the fancy hello*/
 h1 {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'Pacifico', cursive;
     font-size: 24px;
     font-weight: normal;
 }
@@ -139,3 +140,64 @@ nav button:hover {
 nav button.active:hover {
     background-color: var(--highlight);
 }
+
+
+/* RECEIPT */
+.receipt {
+    background: white;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px #0002;
+    font-family: 'Space Mono', monospace;
+}
+
+.receipt h2,
+.receipt p {
+    text-align: center;
+}
+
+.receipt hr {
+    border: none;
+    border-top: 2px dashed var(--text);
+}
+
+#shoppingList .card {
+    background: white;
+    box-shadow: none;
+    border-bottom: 1px dashed #ccc;
+    border-radius: 0;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+/* reciept buttons */
+
+#shoppingList .card button {
+    background: white;
+    color: var(--text);
+    border: 1px dashed var(--text);
+    border-radius: 3px;
+    padding: 4px 6px;
+    font-size: 9px;
+    box-shadow: none;
+    white-space: nowrap;
+}
+
+#shoppingList .card button:first-of-type {
+    margin-left: auto;
+}
+
+
+#shoppingList .card button:hover {
+    background: var(--primary);
+}
+
+#shoppingList .card button:last-child:hover {
+    background-color: var(--highlight);
+    color: white;
+    border-color: var(--highlight);
+}
+
