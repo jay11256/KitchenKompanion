@@ -104,6 +104,39 @@ button:active {
     margin-bottom: 24px;
 }
 
+/* Input box labels */
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+/* Input boxes */
+select,
+input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    font-family: inherit;
+    border: 1.5px solid var(--text);
+    border-radius: 10px;
+}
+
+/* Search Bars */
+.search-bar {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+
+    div:first-child {
+        flex: 1;
+    }
+    div:last-child {
+        flex: 0 0 150px;
+    }
+}
 
 /* NAVIGATION BAR */
 nav {
