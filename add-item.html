@@ -1,1 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Item</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
 
+    <style>
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            font-family: inherit;
+            border: 1.5px solid var(--text);
+            border-radius: 10px;
+        }
+
+        .row {
+            display: flex;
+            gap: 16px;
+        }
+        .row > div {
+            flex: 1;
+        }
+
+        /* quantity */
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+        .stepper button {
+            padding: 12px 14px;
+        }
+
+        .chips {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .chips input {
+            display: none;
+        }
+        .chips label {
+            font-weight: normal;
+            text-align: center;
+            padding: 6px;
+            border: 1.5px solid var(--text);
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .chips input:checked + label {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: var(--bg);
+        }
+
+        /* shared / personal */
+        .radio label {
+            font-weight: normal;
+        }
+        .radio input {
+            accent-color: var(--secondary);
+        }
+
+        /* estimated */
+        .hint {
+            font-size: 10px;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+
+        /* cancel + confirm */
+        .buttons {
+            display: flex;
+            gap: 16px;
+        }
+        .buttons button {
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Add Item</h1>
+
+        <form id="form">
+
+            <div class="section">
+                <label for="name">Item Name</label>
+                <input type="text" id="name" required>
+            </div>
+
+            <div class="section row">
+                <div>
+                    <label for="purchase">Purchase Date</label>
+                    <input type="date" id="purchase">
+                </div>
+                <div>
+                    <label>Quantity</label>
+                    <div class="stepper">
+                        <button type="button" onclick="changeQty(-1)">-</button>
+                        <span id="qty">1</span>
+                        <button type="button" onclick="changeQty(1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <label>Food Group</label>
+                <div class="chips">
+                    <input type="radio" name="group" id="dairy" value="Dairy" required><label for="dairy">Dairy</label>
+                    <input type="radio" name="group" id="fruit" value="Fruit"><label for="fruit">Fruit</label>
+                    <input type="radio" name="group" id="poultry" value="Poultry"><label for="poultry">Poultry</label>
+                    <input type="radio" name="group" id="meat" value="Meat"><label for="meat">Meat</label>
+                    <input type="radio" name="group" id="grain" value="Grain"><label for="grain">Grain</label>
+                    <input type="radio" name="group" id="vegetable" value="Vegetable"><label for="vegetable">Vegetable</label>
+                    <input type="radio" name="group" id="condiment" value="Condiment"><label for="condiment">Condiment</label>
+                    <input type="radio" name="group" id="frozen" value="Frozen"><label for="frozen">Frozen</label>
+                    <input type="radio" name="group" id="other" value="Other"><label for="other">Other</label>
+                </div>
+            </div>
+
+            <div class="section row">
+                <div>
+                    <label for="expiration">Expiration Date</label>
+                    <input type="date" id="expiration" oninput="expEdited = true">
+                    <div class="hint" id="hint"></div>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" name="owner" value="shared" checked> Shared</label>
+                    <label><input type="radio" name="owner" value="personal"> Personal</label>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button type="button" class="btn-secondary" onclick="clearForm()">✕ Clear</button>
+                <button type="submit">✓ Confirm</button>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+        var qty = 1;
+        var expEdited = false; // true once the user picks their own expiration date
+
+        // rough days until it goes bad, by food group (fridge, unopened)
+        var SHELF_LIFE = {
+            Dairy: 7,
+            Fruit: 5,
+            Poultry: 2,
+            Meat: 3,
+            Grain: 7,
+            Vegetable: 5,
+            Condiment: 180,
+            Frozen: 90
+            // Other: no guess
+        };
+
+        // fill in expiration = purchase date + shelf life
+        function predictExpiration() {
+            var group = document.querySelector('input[name="group"]:checked');
+            var purchase = document.getElementById("purchase").value;
+            if (!group || !purchase || expEdited) return;
+
+            var days = SHELF_LIFE[group.value];
+            if (!days) {
+                document.getElementById("expiration").value = "";
+                document.getElementById("hint").textContent = "";
+                return;
+            }
+
+            var date = new Date(purchase + "T00:00");
+            date.setDate(date.getDate() + days);
+            document.getElementById("expiration").value = date.toLocaleDateString("en-CA");
+            document.getElementById("hint").textContent = "Estimated: about " + days + " days for " + group.value;
+        }
+
+        // re-guess whenever the food group or purchase date changes
+        document.querySelectorAll('input[name="group"]').forEach(function (chip) {
+            chip.onchange = predictExpiration;
+        });
+        document.getElementById("purchase").onchange = predictExpiration;
+
+        function changeQty(amount) {
+            qty = Math.max(1, qty + amount);
+            document.getElementById("qty").textContent = qty;
+        }
+
+        function clearForm() {
+            document.getElementById("form").reset();
+            changeQty(-qty);
+            expEdited = false;
+            document.getElementById("hint").textContent = "";
+            document.getElementById("purchase").value = new Date().toLocaleDateString("en-CA"); // en-CA = YYYY-MM-DD
+        }
+
+        clearForm();
+
+        // confirm button
+        document.getElementById("form").onsubmit = function (event) {
+            event.preventDefault();
+
+            var item = {
+                name: document.getElementById("name").value,
+                quantity: qty,
+                group: document.querySelector('input[name="group"]:checked').value,
+                purchase: document.getElementById("purchase").value,
+                expiration: document.getElementById("expiration").value,
+                owner: document.querySelector('input[name="owner"]:checked').value
+            };
+
+            // save to the browser's localStorage under the name "items"
+            var items = JSON.parse(localStorage.getItem("items") || "[]");
+            items.push(item);
+            localStorage.setItem("items", JSON.stringify(items));
+
+            alert("Added " + item.name + "!");
+            clearForm();
+        };
+    </script>
+</body>
+</html>
