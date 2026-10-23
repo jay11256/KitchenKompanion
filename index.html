@@ -88,6 +88,21 @@
             // activates the active button hopefully highlights in the nav bar
             button.classList.add("active");
         }
+        window.addEventListener("message", function(event) {
+    if (event.data.page === "add-item.html") {
+        const button = document.querySelector("nav button:nth-child(3)");
+        const iframe = document.getElementById("content");
+
+        iframe.onload = function() {
+            iframe.contentWindow.postMessage({
+                name: event.data.name
+            }, "*");
+            iframe.onload = null;
+        };
+
+        openTab("add-item.html", button);
+    }
+});
     </script>
 </body>
 </html>

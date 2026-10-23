@@ -225,9 +225,28 @@
             items.push(item);
             localStorage.setItem("items", JSON.stringify(items));
 
-            alert("Added " + item.name + "!");
-            clearForm();
+           
+            // remove confirmed item from shopping list
+        var shoppingList = JSON.parse(localStorage.getItem("shoppingList") || "[]");
+
+        var index = shoppingList.findIndex(i => i.name === item.name);
+
+        if (index !== -1) {
+            shoppingList.splice(index, 1);
+            localStorage.setItem("shoppingList", JSON.stringify(shoppingList));
+        }  
+
+        alert("Added " + item.name + "!");
+        clearForm();
         };
+
+        // Prefill name when coming from Shopping List
+        window.addEventListener("message", function(event) {
+            if (event.data && event.data.name) {
+                document.getElementById("name").value = event.data.name;
+            }
+        });
     </script>
+
 </body>
 </html>

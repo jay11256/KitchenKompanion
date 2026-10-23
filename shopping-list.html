@@ -39,55 +39,86 @@
 
  
 
-    <script>
-        function addItem() {
-            const input = document.getElementById("itemInput");
-            const name = input.value.trim();
+<script>
+    function addItem(name = "", checked = false) {
+        const input = document.getElementById("itemInput");
+        name = name || input.value.trim();
 
-            if (name === "") return;
+        if (name === "") return;
 
-            const list = document.getElementById("shoppingList");
+        const list = document.getElementById("shoppingList");
+        const item = document.createElement("div");
+        item.className = "card";
 
-            const item = document.createElement("div");
-            item.className = "card";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.style.width = "auto";
+        checkbox.checked = checked;
 
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.style.width = "auto";
+        const label = document.createElement("span");
+        label.textContent = " " + name + " ";
+        label.style.textDecoration = checked ? "line-through" : "none";
 
-            const label = document.createElement("span");
-            label.textContent = " " + name + " ";
+        checkbox.addEventListener("change", () => {
+            label.style.textDecoration =
+                checkbox.checked ? "line-through" : "none";
+            saveList();
+        });
 
-            checkbox.addEventListener("change", () => {
-                label.style.textDecoration =
-                    checkbox.checked ? "line-through" : "none";
+        const remove = document.createElement("button");
+        remove.textContent = "×";
+        remove.style.fontSize = "12px";
+        remove.onclick = () => {
+            item.remove();
+            saveList();
+        };
+
+        const fridge = document.createElement("button");
+        fridge.textContent = "Add to Fridge";
+
+        fridge.onclick = () => {
+            window.parent.postMessage({
+                page: "add-item.html",
+                name: name
+            }, "*");
+        };
+
+        item.append(checkbox, label, fridge, remove);
+        list.appendChild(item);
+
+        input.value = "";
+        saveList();
+    }
+
+    // Save shopping list as JSON in the browser
+    function saveList() {
+        const items = [];
+
+        document.querySelectorAll("#shoppingList .card").forEach(item => {
+            items.push({
+                name: item.querySelector("span").textContent.trim(),
+                checked: item.querySelector("input").checked
             });
+        });
 
-            const remove = document.createElement("button");
-            remove.textContent = "×";
-            remove.onclick = () => item.remove();
-            remove.style.fontSize = "12px";
+        localStorage.setItem("shoppingList", JSON.stringify(items));
+    }
 
-            // gonna be able to remove items from shopping list and add them to fridge when the add item page is done
-            // IMPLEMENT TSSSSSSSS 
-            const fridge = document.createElement("button");
-            fridge.textContent = "Add to Fridge";
+    // Restore shopping list when returning to this tab
+    function loadList() {
+        const items = JSON.parse(localStorage.getItem("shoppingList") || "[]");
 
-            fridge.onclick = () => {
-            // TODO: Pass item name to add-item.html and prefill name field.
-            window.parent.location.href = "add-item.html";
-        }  ;
+        items.forEach(item => {
+            addItem(item.name, item.checked);
+        });
+    }
 
-            item.append(checkbox, label, fridge, remove);
-            list.appendChild(item);
+    document.getElementById("itemInput").addEventListener("keydown", event => {
+        if (event.key === "Enter") addItem();
+    });
 
-            input.value = "";
-        }
+    loadList();
+</script>
 
-        document.getElementById("itemInput")
-            .addEventListener("keydown", (event) => {
-                if (event.key === "Enter") addItem();
-            });
-    </script>
 </body>
 </html>
