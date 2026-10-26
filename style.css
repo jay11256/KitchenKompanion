@@ -252,3 +252,53 @@ nav button.active:hover {
         border-radius: 20px;
     }
 }
+
+/* POPUPS */
+
+/* POPUPS */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-overlay.open {
+    display: flex;
+}
+
+.popup {
+    display: none;
+    position: relative;
+    width: 85%;
+    max-height: 85%;
+    overflow-y: auto;
+    box-sizing: border-box;
+    background: var(--bg);
+    padding: 24px;
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.popup.open {
+    display: block;
+}
+
+.popup-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    color: var(--text);
+    box-shadow: none;
+    padding: 4px 8px;
+    font-size: 16px;
+}
+
+.popup-close:hover {
+    background: none;
+    color: var(--highlight);
+}
