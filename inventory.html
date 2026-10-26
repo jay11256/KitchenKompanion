@@ -1,0 +1,62 @@
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+</head>
+
+<div class="container"> 
+
+    <div class="welcome">
+        <div class="welcome-text">
+            <p id="date"></p>
+            <h1>hello, <span id="username">chef</span>! ♡</h1>
+            <p>what's cooking today, nya~?</p>
+        </div>
+
+          <div class="speech-bubble" id="koko-message">
+        your kitchen looks purrfect, nya~!
+    </div>
+
+        <img src="koko_cat.png" alt="Koko the Catgirl" class="koko">
+    </div>
+
+</div>
+
+<script>
+    // Display today's date
+    document.getElementById("date").textContent =
+        new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric"
+        });
+
+    // TODO: Replace with the username saved from Profile
+    document.getElementById("username").textContent = "chef";
+    
+const items = JSON.parse(localStorage.getItem("items") || "[]");
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const expiring = items.filter(item => {
+    if (!item.expiration) return false;
+    const days = Math.ceil(
+        (new Date(item.expiration + "T00:00") - today) / 86400000
+    );
+    return days >= 0 && days <= 3;
+});
+
+let message = "your kitchen looks purrfect, nya~!";
+
+if (items.length === 0) {
+    message = "your fridge is looking lonely, nya~ add some groceries!";
+} else if (expiring.length > 0) {
+    message = expiring.length + " item(s) expiring soon! let's cook, nya~!";
+}
+
+document.getElementById("koko-message").textContent = message;
+
+
+        
+</script>

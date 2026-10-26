@@ -302,3 +302,89 @@ nav button.active:hover {
     background: none;
     color: var(--highlight);
 }
+
+
+
+/* WELCOME HEADER */
+.welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--primary);
+    border-radius: 20px;
+    padding: 12px 16px;
+    gap: 10px;
+    box-shadow: 0 3px 6px #0002;
+}
+
+.welcome-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#date {
+    color: var(--secondary);
+    font-size: 10px;
+    font-weight: bold;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.welcome h1 {
+    font-family: 'Pacifico', cursive;
+    font-size: 23px;
+    font-weight: normal;
+    color: var(--text);
+    margin: 5px 0;
+}
+
+.welcome-text p:last-child {
+    font-size: 11px;
+    margin: 0;
+    color: var(--text);
+}
+
+.koko {
+    width: 85px;
+    height: 95px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+
+/* Koko's speech bubble */
+.speech-bubble {
+    position: relative;
+    background: var(--bg);
+    color: var(--text);
+    border: 2px solid var(--secondary);
+    border-radius: 18px;
+    padding: 12px;
+    max-width: 190px;
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: center;
+    box-shadow: 0 3px 6px #0002;
+}
+
+/* koko speech bubble */
+.speech-bubble::after {
+    content: "";
+    position: absolute;
+    right: -9px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    background: var(--bg);
+    border-right: 2px solid var(--secondary);
+    border-top: 2px solid var(--secondary);
+    transform: translateY(-50%) rotate(45deg);
+}
+
+@media (max-width: 500px) {
+    .speech-bubble {
+        max-width: 120px;
+        padding: 8px;
+        font-size: 10px;
+    }
+}
