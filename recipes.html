@@ -17,6 +17,26 @@
             display: block;
             line-height: 0;
         }
+
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            font-family: inherit;
+            border: 1.5px solid var(--text);
+            border-radius: 10px;
+            resize: vertical;
+        }
+
+        .btn-danger {
+            width: 100%;
+            margin-top: 16px;
+            background-color: var(--highlight);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--text);
+        }
     </style>
 </head>
 
@@ -43,7 +63,7 @@
         <div class="recipes-grid" id="recipes-grid">
             <!-- Recipes will be dynamically inserted here -->
             <div class="card recipe-card" id="add-recipe">
-                <button>
+                <button onclick="openPopup('add-recipe-popup')">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
                     </svg>
@@ -52,13 +72,6 @@
                 <h4>Click to add a new recipe</h4>
                 <h4></h4>
             </div>
-
-            <div class="card recipe-card" onclick="openPopup('example-recipe')">
-                <img src="assets/placeholder-recipe-icon.jpg" alt="Recipe">
-                <h2>Example Recipe</h2>
-                <h4>Difficulty: Medium</h4>
-                <h4>Ready to make!</h4>
-            </div>
         </div>
 
         <!-- Popups -->
@@ -66,19 +79,43 @@
         <div class="popup-overlay" id="popup-overlay">
             <div class="popup" id="add-recipe-popup">
                 <button class="popup-close" onclick="closePopup()" aria-label="Close">✕</button>
-                <h2>Add Recipe</h2>
-                <label for="new-recipe-name">Recipe Name</label>
-                <input type="text" id="new-recipe-name">
+                <form id="add-recipe-form">
+                    <h2>Add Recipe</h2>
+                    <label for="new-recipe-name">Recipe Name</label>
+                    <input type="text" id="new-recipe-name">
+
+                    <label for="new-recipe-difficulty">Difficulty</label>
+                    <select id="new-recipe-difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+
+                    <label for="new-recipe-time">Time (minutes)</label>
+                    <input type="number" id="new-recipe-time">
+
+                    <label for="new-recipe-ingredients">Ingredients (one per line)</label>
+                    <textarea id="new-recipe-ingredients" rows="4"></textarea>
+
+                    <label for="new-recipe-steps">Steps (one per line)</label>
+                    <textarea id="new-recipe-steps" rows="4"></textarea>
+                    
+                    <button type="submit" style="width: 100%; margin: 10px 0;">Add Recipe</button>
+                    <!-- <button type="reset">Clear Form</button> -->
+                </form>
             </div>
 
-            <div class="popup" id="example-recipe">
+            <div class="popup" id="recipe-details-popup">
                 <button class="popup-close" onclick="closePopup()" aria-label="Close">✕</button>
-                <h2>Example Recipe</h2>
-                <p>Difficulty: Medium</p>
-                <p>Time: 30 minutes</p>
-                <p>Availability: Ready to make!</p>
-                <p>Ingredients: [List of ingredients]</p>
-                <p>Steps: [List of steps]</p>
+                <h2 id="detail-name"></h2>
+                <p id="detail-difficulty"></p>
+                <p id="detail-time"></p>
+                <h4>Ingredients</h4>
+                <ul id="detail-ingredients"></ul>
+                <h4>Steps</h4>
+                <ol id="detail-steps"></ol>
+
+                <button type="button" id="delete-recipe-btn" class="btn-danger">Delete Recipe</button>
             </div>
         </div>
 
@@ -86,7 +123,134 @@
 
     <script src="script.js"></script>
     <script>
+        const RECIPES_KEY = "recipes";
+        const DIFFICULTY_ORDER = { easy: 0, medium: 1, hard: 2 };
+        let currentRecipeId = null;
 
+        // localStorage stuff
+        function loadRecipes() {
+            try {
+                return JSON.parse(localStorage.getItem(RECIPES_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+        function saveRecipes(recipes) {
+            localStorage.setItem(RECIPES_KEY, JSON.stringify(recipes));
+        }
+        function splitLines(text) {
+            return text.split("\n").map(line => line.trim()).filter(line => line !== "");
+        }
+        function capitalize(word) {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }
+
+        // Create a recipe
+        document.getElementById("add-recipe-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const name = document.getElementById("new-recipe-name").value.trim();
+            if (name === "") return;
+
+            const recipe = {
+                id: Date.now(),
+                name: name,
+                difficulty: document.getElementById("new-recipe-difficulty").value,
+                time: Number(document.getElementById("new-recipe-time").value) || 0,
+                ingredients: splitLines(document.getElementById("new-recipe-ingredients").value),
+                steps: splitLines(document.getElementById("new-recipe-steps").value)
+            };
+
+            const recipes = loadRecipes();
+            recipes.push(recipe);
+            saveRecipes(recipes);
+            this.reset();
+            closePopup();
+            renderRecipes();
+        });
+
+        // Rendering all the recipe cards (filtered + sorted)
+        function renderRecipes() {
+            const grid = document.getElementById("recipes-grid");
+            grid.querySelectorAll(".recipe-card:not(#add-recipe)").forEach(card => card.remove());
+
+            const query = document.getElementById("recipe-name").value.trim().toLowerCase();
+            const sortBy = document.getElementById("sort").value;
+
+            // filter by name
+            let recipes = loadRecipes().filter(recipe =>
+                recipe.name.toLowerCase().includes(query)
+            );
+
+            // sort
+            if (sortBy === "difficulty") {
+                recipes.sort((a, b) =>
+                    DIFFICULTY_ORDER[a.difficulty] - DIFFICULTY_ORDER[b.difficulty] || a.name.localeCompare(b.name)
+                );
+            } else if (sortBy === "time") {
+                recipes.sort((a, b) =>
+                    a.time - b.time || a.name.localeCompare(b.name)
+                );
+            }
+
+            recipes.forEach(recipe => {
+                const card = document.createElement("div");
+                card.className = "card recipe-card";
+                card.innerHTML = `
+                    <img src="assets/placeholder-recipe-icon.jpg" alt="">
+                    <h2></h2>
+                    <h4 class="card-difficulty"></h4>
+                    <h4 class="card-time"></h4>
+                `;
+                card.querySelector("h2").textContent = recipe.name;
+                card.querySelector(".card-difficulty").textContent = "Difficulty: " + capitalize(recipe.difficulty);
+                card.querySelector(".card-time").textContent = recipe.time + " min";
+
+                card.addEventListener("click", () => openRecipeDetails(recipe));
+                grid.appendChild(card);
+            });
+        }
+
+        // re-render whenever the search or sort changes
+        document.getElementById("recipe-name").addEventListener("input", renderRecipes);
+        document.getElementById("sort").addEventListener("change", renderRecipes);
+
+        // Recipe popup
+        function fillList(listId, items) {
+            const list = document.getElementById(listId);
+            list.innerHTML = "";
+            items.forEach(text => {
+                const li = document.createElement("li");
+                li.textContent = text;
+                list.appendChild(li);
+            });
+        }
+
+        function openRecipeDetails(recipe) {
+            currentRecipeId = recipe.id;
+            document.getElementById("detail-name").textContent = recipe.name;
+            document.getElementById("detail-difficulty").textContent = "Difficulty: " + capitalize(recipe.difficulty);
+            document.getElementById("detail-time").textContent = "Time: " + recipe.time + " minutes";
+            fillList("detail-ingredients", recipe.ingredients);
+            fillList("detail-steps", recipe.steps);
+            openPopup("recipe-details-popup");
+        }
+
+        document.getElementById("delete-recipe-btn").addEventListener("click", function () {
+            if (currentRecipeId === null) return;
+
+            const name = document.getElementById("detail-name").textContent;
+            if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
+
+            const recipes = loadRecipes().filter(r => r.id !== currentRecipeId);
+            saveRecipes(recipes);
+
+            currentRecipeId = null;
+            closePopup();
+            renderRecipes();
+        });
+
+        renderRecipes();
     </script>
 </body>
 </html>
