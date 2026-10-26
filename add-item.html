@@ -73,6 +73,28 @@
         .buttons button {
             flex: 1;
         }
+
+        .popup {
+            position: fixed;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            display: none; /* hidden until something is added */
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 10px 10px 16px;
+            background: var(--text);
+            color: var(--bg);
+            border-radius: 20px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+        }
+        .popup button {
+            background: var(--primary);
+            color: var(--text);
+            padding: 8px 16px;
+        }
+
+
     </style>
 </head>
 
@@ -98,6 +120,25 @@
                         <button type="button" onclick="changeQty(-1)">-</button>
                         <span id="qty">1</span>
                         <button type="button" onclick="changeQty(1)">+</button>
+
+                           <select id="unit" aria-label="Unit">
+                            <option value="">unit</option>
+                            <option value="oz">oz</option>
+                            <option value="lb">lb</option>
+                            <option value="g">g</option>
+                            <option value="kg">kg</option>
+                            <option value="fl oz">fl oz</option>
+                            <option value="cup">cup</option>
+                            <option value="pt">pt</option>
+                            <option value="qt">qt</option>
+                            <option value="gal">gal</option>
+                            <option value="L">L</option>
+                            <option value="pack">pack</option>
+                            <option value="can">can</option>
+                            <option value="bottle">bottle</option>
+                            <option value="box">box</option>
+                            <option value="dozen">dozen</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -137,9 +178,20 @@
         </form>
     </div>
 
+    <div class="popup" id="popup">
+        <span id="popupText"></span>
+        <button type="button" onclick="undoAdd()">Undo</button>
+    </div>
+
+
     <script>
         var qty = 1;
         var expEdited = false; // true once the user picks their own expiration date
+        var lastAdded = null;
+        var lastShoppingIndex = -1;
+        var lastShoppingEntry = null;
+        var popupTimer;
+
 
         // rough days until it goes bad, by food group (fridge, unopened)
         var SHELF_LIFE = {
@@ -201,13 +253,14 @@
             var item = {
                 name: document.getElementById("name").value,
                 quantity: qty,
+                unit: document.getElementById("unit").value,
                 group: document.querySelector('input[name="group"]:checked').value,
                 purchase: document.getElementById("purchase").value,
                 expiration: document.getElementById("expiration").value,
                 owner: document.querySelector('input[name="owner"]:checked').value
             };
 
-            // save to the browser's localStorage under the name "items"
+            // save to localStorage under "items"
             var items = JSON.parse(localStorage.getItem("items") || "[]");
             items.push(item);
             localStorage.setItem("items", JSON.stringify(items));
@@ -219,13 +272,57 @@
         var index = shoppingList.findIndex(i => i.name === item.name);
 
         if (index !== -1) {
-            shoppingList.splice(index, 1);
+            var removed = shoppingList.splice(index, 1)[0];
             localStorage.setItem("shoppingList", JSON.stringify(shoppingList));
         }  
 
-        alert("Added " + item.name + "!");
+        lastAdded = item;
+        lastShoppingIndex = index;
+        lastShoppingEntry = removed;
+
+        showPopup("Added " + item.name + "!");
         clearForm();
         };
+
+
+        // show the pop-up for 5 seconds
+        function showPopup(message) {
+            document.getElementById("popupText").textContent = message;
+            document.getElementById("popup").style.display = "flex";
+            clearTimeout(popupTimer);
+            popupTimer = setTimeout(function () {
+                document.getElementById("popup").style.display = "none";
+                lastAdded = null; // too late to undo
+            }, 5000);
+        }
+ 
+        // Undo: take the item back out, put it back on the shopping list, refill the form
+        function undoAdd() {
+            if (!lastAdded) return;
+ 
+            var items = JSON.parse(localStorage.getItem("items") || "[]");
+            items.pop(); // it was the last one added
+            localStorage.setItem("items", JSON.stringify(items));
+ 
+            if (lastShoppingIndex !== -1) {
+                var shoppingList = JSON.parse(localStorage.getItem("shoppingList") || "[]");
+                shoppingList.splice(lastShoppingIndex, 0, lastShoppingEntry);
+                localStorage.setItem("shoppingList", JSON.stringify(shoppingList));
+            }
+ 
+            // put everything back in the form
+            document.getElementById("name").value = lastAdded.name;
+            changeQty(lastAdded.quantity - qty);
+            document.getElementById("unit").value = lastAdded.unit;
+            document.getElementById(lastAdded.group.toLowerCase()).checked = true;
+            document.getElementById("purchase").value = lastAdded.purchase;
+            document.getElementById("expiration").value = lastAdded.expiration;
+            expEdited = true; // keep their expiration date as-is
+            document.querySelector('input[name="owner"][value="' + lastAdded.owner + '"]').checked = true;
+ 
+            lastAdded = null;
+            document.getElementById("popup").style.display = "none";
+        }
 
         // Prefill name when coming from Shopping List
         window.addEventListener("message", function(event) {
