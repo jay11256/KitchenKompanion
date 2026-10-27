@@ -253,7 +253,6 @@ nav button.active:hover {
     }
 }
 
-/* POPUPS */
 
 /* POPUPS */
 .popup-overlay {
@@ -352,7 +351,7 @@ nav button.active:hover {
 }
 
 
-/* Koko's speech bubble */
+/* koko's speech bubble */
 .speech-bubble {
     position: relative;
     background: var(--bg);
@@ -367,7 +366,6 @@ nav button.active:hover {
     box-shadow: 0 3px 6px #0002;
 }
 
-/* koko speech bubble */
 .speech-bubble::after {
     content: "";
     position: absolute;
@@ -387,4 +385,123 @@ nav button.active:hover {
         padding: 8px;
         font-size: 10px;
     }
+}
+
+/* Kitchen Overview */
+.overview {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 0;
+    background: white;
+    border-radius: 20px;
+    padding: 18px 10px;
+    text-align: center;
+    box-shadow: 0 3px 6px #0002;
+}
+
+.stat-card .material-symbols-rounded {
+    font-size: 28px;
+    color: var(--secondary);
+}
+
+.stat-card h2 {
+    font-size: 26px;
+    margin: 8px 0;
+    color: var(--text);
+}
+
+.stat-card p {
+    font-size: 11px;
+    margin: 0;
+}
+
+.stat-card:nth-child(2) .material-symbols-rounded {
+    color: var(--highlight);
+}
+
+/* PANTRY */
+.pantry {
+    margin-top: 24px;
+}
+
+.pantry h2 {
+    margin-bottom: 15px;
+}
+
+.inventory-list {
+    background: white;
+    border-radius: 20px;
+    padding: 5px 16px;
+    box-shadow: 0 3px 6px #0002;
+}
+
+.inventory-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.inventory-row:last-child {
+    border-bottom: none;
+}
+
+.food-icon {
+    font-size: 26px;
+    background: var(--bg);
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.food-info {
+    flex: 1;
+}
+
+.food-info h3 {
+    margin: 0 0 4px;
+    font-size: 13px;
+}
+
+.food-info p {
+    margin: 0;
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.expiry-tag {
+    background: var(--primary);
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.expiry-tag.urgent {
+    background: var(--highlight);
+    color: white;
+}
+
+.inventory-row .material-symbols-rounded {
+    color: var(--secondary);
+    font-size: 20px;
+}
+
+/* Inventory delete button */
+.delete-item {
+    background: transparent;
+    color: var(--highlight);
+    font-size: 20px;
+    padding: 4px 8px;
+    box-shadow: none;
+}
+
+.delete-item:hover {
+    background: var(--highlight);
+    color: white;
 }
