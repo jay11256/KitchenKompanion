@@ -23,61 +23,97 @@
     </div>
     
 <!-- overview section -->
-<div class="overview">
-    <div class="stat-card">
-        <span class="material-symbols-rounded">kitchen</span>
-        <h2 id="totalItems">0</h2>
-        <p>ingredients</p>
-    </div>
+    <div class="overview">
+        <div class="stat-card">
+            <span class="material-symbols-rounded">kitchen</span>
+            <h2 id="totalItems">0</h2>
+            <p>ingredients</p>
+        </div>
 
-    <div class="stat-card">
-        <span class="material-symbols-rounded">schedule</span>
-        <h2 id="expiringCount">0</h2>
-        <p>expiring soon</p>
-    </div>
+        <div class="stat-card">
+            <span class="material-symbols-rounded">schedule</span>
+            <h2 id="expiringCount">0</h2>
+            <p>expiring soon</p>
+        </div>
 
-    <div class="stat-card">
-        <span class="material-symbols-rounded">shopping_basket</span>
-        <h2 id="shoppingCount">0</h2>
-        <p>to buy</p>
+        <div class="stat-card">
+            <span class="material-symbols-rounded">shopping_basket</span>
+            <h2 id="shoppingCount">0</h2>
+            <p>to buy</p>
+        </div>
     </div>
-</div>
 
 
 <!-- actual list of inventory items -->
-<div class="section pantry">
+    <div class="section pantry">
 
-    <div class="pantry-header">
-        <h2>your pantry ♡</h2>
+        <div class="pantry-header">
+            <h2>your pantry ♡</h2>
 
-        <select id="sortBy" onchange="sortItems()">
-            <option value="expiration">Expiring First</option>
-            <option value="alphabetical">A to Z</option>
-            <option value="recent">Recently Added</option>
-        </select>
+            <select id="sortBy" onchange="sortItems()">
+                <option value="expiration">Expiring First</option>
+                <option value="alphabetical">A to Z</option>
+                <option value="recent">Recently Added</option>
+            </select>
+        </div>
+
+        <div class="search-bar">
+            <span class="material-symbols-rounded">search</span>
+            <input type="text" id="searchInput" placeholder="search ingredients...">
+        </div>
+
+        <div class="food-filters">
+            <button class="selected" onclick="filterGroup('All', this)">All</button>
+            <button onclick="filterGroup('Dairy', this)">Dairy</button>
+            <button onclick="filterGroup('Fruit', this)">Fruit</button>
+            <button onclick="filterGroup('Vegetable', this)">Vegetable</button>
+            <button onclick="filterGroup('Meat', this)">Meat</button>
+            <button onclick="filterGroup('Poultry', this)">Poultry</button>
+            <button onclick="filterGroup('Grain', this)">Grain</button>
+            <button onclick="filterGroup('Frozen', this)">Frozen</button>
+            <button onclick="filterGroup('Condiment', this)">Condiment</button>
+            <button onclick="filterGroup('Other', this)">Other</button>
+        </div>
+
+        <div id="inventoryList"></div>
+
     </div>
 
-    <div class="search-bar">
-        <span class="material-symbols-rounded">search</span>
-        <input type="text" id="searchInput" placeholder="search ingredients...">
+    <!-- Ingredient Details Popup -->
+    <div id="itemPopup" class="popup" onclick="closePopup()">
+        <div class="popup-content" onclick="event.stopPropagation()">
+            <button class="popup-close" onclick="closePopup()">×</button>
+
+            <div id="popupIcon"></div>
+            <h2 id="popupName"></h2>
+            <p id="popupGroup"></p>
+
+            <hr>
+
+            <div class="detail-row">
+                <span>quantity</span>
+                <span id="popupQuantity"></span>
+            </div>
+
+            <div class="detail-row">
+                <span>purchased</span>
+                <span id="popupPurchase"></span>
+            </div>
+
+            <div class="detail-row">
+                <span>expires</span>
+                <span id="popupExpiration"></span>
+            </div>
+
+            <div class="detail-row">
+                <span>ownership</span>
+                <span id="popupOwner"></span>
+            </div>
+
+            <button onclick="closePopup()">done ♡</button>
+        </div>
     </div>
 
-    <div class="food-filters">
-        <button class="selected" onclick="filterGroup('All', this)">All</button>
-        <button onclick="filterGroup('Dairy', this)">Dairy</button>
-        <button onclick="filterGroup('Fruit', this)">Fruit</button>
-        <button onclick="filterGroup('Vegetable', this)">Vegetable</button>
-        <button onclick="filterGroup('Meat', this)">Meat</button>
-        <button onclick="filterGroup('Poultry', this)">Poultry</button>
-        <button onclick="filterGroup('Grain', this)">Grain</button>
-        <button onclick="filterGroup('Frozen', this)">Frozen</button>
-        <button onclick="filterGroup('Condiment', this)">Condiment</button>
-        <button onclick="filterGroup('Other', this)">Other</button>
-    </div>
-
-    <div id="inventoryList"></div>
-
-</div>
 
 </div> <!-- closes container -->
 
@@ -202,18 +238,21 @@
             <button class="delete-item">×</button>
         `;
         row.querySelector(".delete-item").onclick = () => {
-        if (confirm("remove " + item.name + " from your pantry?")) {
-            const index = inventoryItems.indexOf(item);
-            inventoryItems.splice(index, 1);
-            localStorage.setItem("items", JSON.stringify(inventoryItems));
-            location.reload();
-        }
-    };
+            event.stopPropagation();
+            if (confirm("remove " + item.name + " from your pantry?")) {
+                const index = inventoryItems.indexOf(item);
+                inventoryItems.splice(index, 1);
+                localStorage.setItem("items", JSON.stringify(inventoryItems));
+                location.reload();
+            }
+        };
 
         row.querySelector("h3").textContent = item.name;
         row.dataset.name = item.name.toLowerCase();
         row.dataset.group = item.group;
         row.querySelector("p").textContent = item.quantity + " • " + item.group;
+        row.style.cursor = "pointer";
+        row.onclick = () => showDetails(item);
 
         inventoryList.appendChild(row);
     });
@@ -226,32 +265,71 @@
 
     // Filter ingredients as the user types
     
-let selectedGroup = "All";
+    let selectedGroup = "All";
 
-function applyFilters() {
-    const search = document.getElementById("searchInput").value.toLowerCase().trim();
+    function applyFilters() {
+        const search = document.getElementById("searchInput").value.toLowerCase().trim();
 
-    document.querySelectorAll(".inventory-row").forEach(row => {
-        const matchesName = row.dataset.name.includes(search);
-        const matchesGroup = selectedGroup === "All" ||
-                             row.dataset.group === selectedGroup;
+        document.querySelectorAll(".inventory-row").forEach(row => {
+            const matchesName = row.dataset.name.includes(search);
+            const matchesGroup = selectedGroup === "All" ||
+                                row.dataset.group === selectedGroup;
 
-        row.style.display = matchesName && matchesGroup ? "flex" : "none";
-    });
-}
+            row.style.display = matchesName && matchesGroup ? "flex" : "none";
+        });
+    }
 
-function filterGroup(group, button) {
-    selectedGroup = group;
+    function filterGroup(group, button) {
+        selectedGroup = group;
 
-    document.querySelectorAll(".food-filters button").forEach(btn => {
-        btn.classList.remove("selected");
-    });
+        document.querySelectorAll(".food-filters button").forEach(btn => {
+            btn.classList.remove("selected");
+        });
 
-    button.classList.add("selected");
-    applyFilters();
-}
+        button.classList.add("selected");
+        applyFilters();
+    }
 
-document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+
+
+    function sortItems() {
+        const list = document.getElementById("inventoryList");
+        const rows = Array.from(list.querySelectorAll(".inventory-row"));
+        const sort = document.getElementById("sortBy").value;
+
+        rows.sort((a, b) => {
+            if (sort === "alphabetical") {
+                return a.dataset.name.localeCompare(b.dataset.name);
+            }
+
+            if (sort === "expiration") {
+                return a.dataset.expiration.localeCompare(b.dataset.expiration);
+            }
+
+            return Number(b.dataset.index) - Number(a.dataset.index);
+        });
+
+        rows.forEach(row => list.appendChild(row));
+    }
+    
+    function showDetails(item) {
+        document.getElementById("popupIcon").textContent =
+            foodIcons[item.group] || "🍽️";
+
+        document.getElementById("popupName").textContent = item.name;
+        document.getElementById("popupGroup").textContent = item.group;
+        document.getElementById("popupQuantity").textContent = item.quantity;
+        document.getElementById("popupPurchase").textContent = item.purchase || "Not set";
+        document.getElementById("popupExpiration").textContent = item.expiration || "Not set";
+        document.getElementById("popupOwner").textContent = item.owner || "Not set";
+
+        document.getElementById("itemPopup").style.display = "flex";
+    }
+
+    function closePopup() {
+        document.getElementById("itemPopup").style.display = "none";
+    }
 
 
 
