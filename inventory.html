@@ -43,15 +43,44 @@
     </div>
 </div>
 
+
 <!-- actual list of inventory items -->
 <div class="section pantry">
-    <h2>your pantry ♡</h2>
+
+    <div class="pantry-header">
+        <h2>your pantry ♡</h2>
+
+        <select id="sortBy" onchange="sortItems()">
+            <option value="expiration">Expiring First</option>
+            <option value="alphabetical">A to Z</option>
+            <option value="recent">Recently Added</option>
+        </select>
+    </div>
+
+    <div class="search-bar">
+        <span class="material-symbols-rounded">search</span>
+        <input type="text" id="searchInput" placeholder="search ingredients...">
+    </div>
+
+    <div class="food-filters">
+        <button class="selected" onclick="filterGroup('All', this)">All</button>
+        <button onclick="filterGroup('Dairy', this)">Dairy</button>
+        <button onclick="filterGroup('Fruit', this)">Fruit</button>
+        <button onclick="filterGroup('Vegetable', this)">Vegetable</button>
+        <button onclick="filterGroup('Meat', this)">Meat</button>
+        <button onclick="filterGroup('Poultry', this)">Poultry</button>
+        <button onclick="filterGroup('Grain', this)">Grain</button>
+        <button onclick="filterGroup('Frozen', this)">Frozen</button>
+        <button onclick="filterGroup('Condiment', this)">Condiment</button>
+        <button onclick="filterGroup('Other', this)">Other</button>
+    </div>
+
     <div id="inventoryList"></div>
-</div>
-
-
 
 </div>
+
+</div> <!-- closes container -->
+
 
 <script>
     //  today's date idt ts needs wifi but check
@@ -65,130 +94,166 @@
     // TODO: Replace with the username saved from Profile
     document.getElementById("username").textContent = "chef";
     
-const items = JSON.parse(localStorage.getItem("items") || "[]");
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+    const items = JSON.parse(localStorage.getItem("items") || "[]");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-const expiring = items.filter(item => {
-    if (!item.expiration) return false;
-    const days = Math.ceil(
-        (new Date(item.expiration + "T00:00") - today) / 86400000
-    );
-    return days >= 0 && days <= 3;
-});
-
-let message = "your kitchen looks purrfect, nya~!";
-
-if (items.length === 0) {
-    message = "your fridge is looking lonely (ﾐ･｡･ﾐ) add some groceries!";
-} else if (expiring.length > 0) {
-    message = expiring.length + " item(s) expiring soon! let's cook, nya~!";
-}
-
-document.getElementById("koko-message").textContent = message;
-
-// coutn inventory items like stuff thats added alr
-const inventoryItems = JSON.parse(localStorage.getItem("items") || "[]");
-
-document.getElementById("totalItems").textContent = inventoryItems.length;
-
-// couunt ingredients expiring within 3 days
-const todayDate = new Date();
-todayDate.setHours(0, 0, 0, 0);
-
-const expiringItems = inventoryItems.filter(item => {
-    if (!item.expiration) return false;
-
-    const expiration = new Date(item.expiration + "T00:00");
-    const days = Math.round((expiration - todayDate) / 86400000);
-
-    return days >= 0 && days <= 3;
-});
-
-document.getElementById("expiringCount").textContent = expiringItems.length;
-
-// count all the shopping list items even if theyre checked bc theyre not acc added yet
-const shoppingItems = JSON.parse(localStorage.getItem("shoppingList") || "[]");
-
-document.getElementById("shoppingCount").textContent =
-    shoppingItems.length;
-
-
-//  icons based on food group! we can totes change this for more specific later
-const foodIcons = {
-    Dairy: "🥛",
-    Fruit: "🍓",
-    Poultry: "🍗",
-    Meat: "🥩",
-    Grain: "🍞",
-    Vegetable: "🥕",
-    Condiment: "🧂",
-    Frozen: "🧊",
-    Other: "🍽️"
-};
-
-const inventoryList = document.getElementById("inventoryList");
-inventoryList.className = "inventory-list";
-
-// puts items in list w expirey warnings
-inventoryItems.forEach(item => {
-    const row = document.createElement("div");
-    row.className = "inventory-row";
-
-    const icon = foodIcons[item.group] || "🍽️";
-
-    let expiryText = "No expiry";
-    let urgent = false;
-
-    if (item.expiration) {
-        const days = Math.round(
-            (new Date(item.expiration + "T00:00") - todayDate) / 86400000
+    const expiring = items.filter(item => {
+        if (!item.expiration) return false;
+        const days = Math.ceil(
+            (new Date(item.expiration + "T00:00") - today) / 86400000
         );
+        return days >= 0 && days <= 3;
+    });
 
-        if (days < 0) {
-            expiryText = "Expired";
-            urgent = true;
-        } else if (days === 0) {
-            expiryText = "Today";
-            urgent = true;
-        } else if (days === 1) {
-            expiryText = "Tomorrow";
-            urgent = true;
-        } else {
-            expiryText = days + " days";
-            urgent = days <= 3;
+    let message = "your kitchen looks purrfect, nya~!";
+
+    if (items.length === 0) {
+        message = "your fridge is looking lonely (ﾐ･｡･ﾐ) add some groceries!";
+    } else if (expiring.length > 0) {
+        message = expiring.length + " item(s) expiring soon! let's cook, nya~!";
+    }
+
+    document.getElementById("koko-message").textContent = message;
+
+    // coutn inventory items like stuff thats added alr
+    const inventoryItems = JSON.parse(localStorage.getItem("items") || "[]");
+
+    document.getElementById("totalItems").textContent = inventoryItems.length;
+
+    // couunt ingredients expiring within 3 days
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+
+    const expiringItems = inventoryItems.filter(item => {
+        if (!item.expiration) return false;
+
+        const expiration = new Date(item.expiration + "T00:00");
+        const days = Math.round((expiration - todayDate) / 86400000);
+
+        return days >= 0 && days <= 3;
+    });
+
+    document.getElementById("expiringCount").textContent = expiringItems.length;
+
+    // count all the shopping list items even if theyre checked bc theyre not acc added yet
+    const shoppingItems = JSON.parse(localStorage.getItem("shoppingList") || "[]");
+
+    document.getElementById("shoppingCount").textContent =
+        shoppingItems.length;
+
+
+    //  icons based on food group! we can totes change this for more specific later
+    const foodIcons = {
+        Dairy: "🥛",
+        Fruit: "🍓",
+        Poultry: "🍗",
+        Meat: "🥩",
+        Grain: "🍞",
+        Vegetable: "🥕",
+        Condiment: "🧂",
+        Frozen: "🧊",
+        Other: "🍽️"
+    };
+
+    const inventoryList = document.getElementById("inventoryList");
+    inventoryList.className = "inventory-list";
+
+    // puts items in list w expirey warnings
+    inventoryItems.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "inventory-row";
+        row.dataset.expiration = item.expiration || "9999";
+        row.dataset.index = index;
+        row.dataset.name = item.name.toLowerCase();
+
+        const icon = foodIcons[item.group] || "🍽️";
+
+        let expiryText = "No expiry";
+        let urgent = false;
+
+        if (item.expiration) {
+            const days = Math.round(
+                (new Date(item.expiration + "T00:00") - todayDate) / 86400000
+            );
+
+            if (days < 0) {
+                expiryText = "Expired";
+                urgent = true;
+            } else if (days === 0) {
+                expiryText = "Today";
+                urgent = true;
+            } else if (days === 1) {
+                expiryText = "Tomorrow";
+                urgent = true;
+            } else {
+                expiryText = days + " days";
+                urgent = days <= 3;
+            }
         }
+
+        row.innerHTML = `
+            <span class="food-icon">${icon}</span>
+            <div class="food-info">
+                <h3></h3>
+                <p></p>
+            </div>
+            <span class="expiry-tag ${urgent ? "urgent" : ""}">${expiryText}</span>
+            <button class="delete-item">×</button>
+        `;
+        row.querySelector(".delete-item").onclick = () => {
+        if (confirm("remove " + item.name + " from your pantry?")) {
+            const index = inventoryItems.indexOf(item);
+            inventoryItems.splice(index, 1);
+            localStorage.setItem("items", JSON.stringify(inventoryItems));
+            location.reload();
+        }
+    };
+
+        row.querySelector("h3").textContent = item.name;
+        row.dataset.name = item.name.toLowerCase();
+        row.dataset.group = item.group;
+        row.querySelector("p").textContent = item.quantity + " • " + item.group;
+
+        inventoryList.appendChild(row);
+    });
+    sortItems();
+
+    // empty pantry message
+    if (inventoryItems.length === 0) {
+        inventoryList.innerHTML = "<p style='padding: 15px;'>no ingredients yet, nya~!</p>";
     }
 
-    row.innerHTML = `
-        <span class="food-icon">${icon}</span>
-        <div class="food-info">
-            <h3></h3>
-            <p></p>
-        </div>
-        <span class="expiry-tag ${urgent ? "urgent" : ""}">${expiryText}</span>
-        <button class="delete-item">×</button>
-    `;
-    row.querySelector(".delete-item").onclick = () => {
-    if (confirm("remove " + item.name + " from your pantry?")) {
-        const index = inventoryItems.indexOf(item);
-        inventoryItems.splice(index, 1);
-        localStorage.setItem("items", JSON.stringify(inventoryItems));
-        location.reload();
-    }
-};
+    // Filter ingredients as the user types
+    
+let selectedGroup = "All";
 
-    row.querySelector("h3").textContent = item.name;
-    row.querySelector("p").textContent =
-        item.quantity + " • " + item.group;
+function applyFilters() {
+    const search = document.getElementById("searchInput").value.toLowerCase().trim();
 
-    inventoryList.appendChild(row);
-});
+    document.querySelectorAll(".inventory-row").forEach(row => {
+        const matchesName = row.dataset.name.includes(search);
+        const matchesGroup = selectedGroup === "All" ||
+                             row.dataset.group === selectedGroup;
 
-// empty pantry message
-if (inventoryItems.length === 0) {
-    inventoryList.innerHTML = "<p style='padding: 15px;'>no ingredients yet, nya~!</p>";
+        row.style.display = matchesName && matchesGroup ? "flex" : "none";
+    });
 }
+
+function filterGroup(group, button) {
+    selectedGroup = group;
+
+    document.querySelectorAll(".food-filters button").forEach(btn => {
+        btn.classList.remove("selected");
+    });
+
+    button.classList.add("selected");
+    applyFilters();
+}
+
+document.getElementById("searchInput").addEventListener("input", applyFilters);
+
+
 
 
 </script>

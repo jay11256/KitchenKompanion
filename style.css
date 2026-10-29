@@ -505,3 +505,82 @@ nav button.active:hover {
     background: var(--highlight);
     color: white;
 }
+
+
+/* Pantry Search */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1px solid var(--primary);
+    border-radius: 15px;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+
+.search-bar .material-symbols-rounded {
+    color: var(--secondary);
+    font-size: 22px;
+}
+
+.search-bar input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+}
+
+
+/* Food Group Filters */
+.food-filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+}
+
+.food-filters button {
+    flex-shrink: 0;
+    background: var(--primary);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 20px;
+    box-shadow: none;
+    font-size: 10px;
+}
+
+.food-filters button.selected {
+    background: var(--highlight);
+    color: white;
+}
+
+
+
+.pantry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.pantry-header h2 {
+    margin: 0;
+}
+
+#sortBy {
+    background: transparent;
+    color: var(--highlight);
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+}
