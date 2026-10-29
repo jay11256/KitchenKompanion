@@ -548,7 +548,8 @@ nav button.active:hover {
     padding-bottom: 5px;
 }
 
-.food-filters button {
+.food-filters button,
+.chips label {
     flex-shrink: 0;
     background: var(--primary);
     color: var(--text);
@@ -558,7 +559,8 @@ nav button.active:hover {
     font-size: 10px;
 }
 
-.food-filters button.selected {
+.food-filters button.selected,
+.chips input:checked + label{
     background: var(--highlight);
     color: white;
 }
@@ -650,4 +652,81 @@ nav button.active:hover {
     box-sizing: border-box;
     height: 960px
 
+}
+
+/* profile and add item stuff */
+
+.row {
+    display: flex;
+    gap: 16px;
+}
+.row > div {
+    flex: 1;
+}
+
+.hint {
+    font-size: 10px;
+    margin-top: 4px;
+    opacity: 0.7;
+}
+
+.radio label {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.radio input {
+    width: auto;
+    accent-color: var(--secondary);
+}
+
+.white-card {
+    background: white;
+    border-radius: 20px;
+    padding: 14px 16px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    margin-bottom: 16px;
+}
+.white-card h2 {
+    margin: 0 0 10px;
+}
+
+/* PILL CHOICES: same look as the home tab's food filters
+   (hidden checkbox/radio + a label that looks like a pill) */
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: relative;
+}
+.chips-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+/* invisible, but not display:none, so the "please select" pop-up still shows */
+.chips input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.chips label {
+    margin: 0;
+    font-weight: normal;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.chips input:disabled + label {
+    cursor: default;
+}
+
+/* two buttons side by side, e.g. Clear + Confirm, Cancel + Save */
+.buttons {
+    display: flex;
+    gap: 16px;
+}
+.buttons button {
+    flex: 1;
 }

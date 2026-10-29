@@ -6,15 +6,6 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        .row {
-            display: flex;
-            gap: 16px;
-        }
-        .row > div {
-            flex: 1;
-        }
-
-        /* quantity */
         .stepper {
             display: flex;
             align-items: center;
@@ -24,62 +15,15 @@
         .stepper button {
             padding: 12px 14px;
         }
-
-        .chips {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            position: relative
+        .stepper select {
+            width: auto;
         }
-        .chips input {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .chips label {
-            font-weight: normal;
-            text-align: center;
-            padding: 6px;
-            border: 1.5px solid var(--text);
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        .chips input:checked + label {
-            background: var(--secondary);
-            border-color: var(--secondary);
-            color: var(--bg);
-        }
-
-        /* shared / personal */
-        .radio label {
-            font-weight: normal;
-        }
-        .radio input {
-            accent-color: var(--secondary);
-        }
-
-        /* estimated */
-        .hint {
-            font-size: 10px;
-            margin-top: 4px;
-            opacity: 0.7;
-        }
-
-        /* cancel + confirm */
-        .buttons {
-            display: flex;
-            gap: 16px;
-        }
-        .buttons button {
-            flex: 1;
-        }
-
-        .popup {
+        .undo-bar {
             position: fixed;
             left: 20px;
             right: 20px;
             bottom: 20px;
-            display: none; /* hidden until something is added */
+            display: none;
             align-items: center;
             justify-content: space-between;
             padding: 10px 10px 10px 16px;
@@ -88,13 +32,11 @@
             border-radius: 20px;
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
         }
-        .popup button {
+        .undo-bar button {
             background: var(--primary);
             color: var(--text);
             padding: 8px 16px;
         }
-
-
     </style>
 </head>
 
@@ -145,7 +87,7 @@
 
             <div class="section">
                 <label>Food Group</label>
-                <div class="chips">
+                <div class="chips chips-grid">
                     <input type="radio" name="group" id="dairy" value="Dairy" required><label for="dairy">Dairy</label>
                     <input type="radio" name="group" id="fruit" value="Fruit"><label for="fruit">Fruit</label>
                     <input type="radio" name="group" id="poultry" value="Poultry"><label for="poultry">Poultry</label>
@@ -178,7 +120,7 @@
         </form>
     </div>
 
-    <div class="popup" id="popup">
+    <div class="undo-bar" id="popup">
         <span id="popupText"></span>
         <button type="button" onclick="undoAdd()">Undo</button>
     </div>
