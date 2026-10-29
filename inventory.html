@@ -252,8 +252,12 @@
         row.dataset.group = item.group;
         row.querySelector("p").textContent = item.quantity + " • " + item.group;
         row.style.cursor = "pointer";
-        row.onclick = () => showDetails(item);
-
+        row.onclick = () => {
+            window.parent.postMessage({
+                type: "showDetails",
+                item: item
+            }, "*");
+        };
         inventoryList.appendChild(row);
     });
     sortItems();
