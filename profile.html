@@ -1,1 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
 
+    <style>
+        /* title + edit button */
+        .profile-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .profile-top h1 {
+            margin: 0;
+        }
+        .edit-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+        }
+        .edit-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* photo + name */
+        .profile-header {
+            text-align: center;
+            margin: 10px 0 20px;
+        }
+        .photo-wrap {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 12px;
+        }
+        .photo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid var(--primary);
+            box-sizing: border-box;
+        }
+        .photo-btn {
+            position: absolute;
+            right: 0;
+            bottom: 4px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .photo-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        #photoInput {
+            display: none;
+        }
+        .profile-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+        #nameInput {
+            display: none;
+            max-width: 260px;
+            margin: 0 auto;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        /* "Diet" / "Allergies" mini headings + divider */
+        .white-card h3 {
+            font-size: 11px;
+            margin: 0 0 8px;
+            opacity: 0.7;
+        }
+        .white-card hr {
+            border: none;
+            border-top: 1px dashed #ccc;
+            margin: 12px 0;
+        }
+
+        /* cooking level */
+        .levels {
+            display: flex;
+            gap: 10px;
+        }
+        .levels input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .levels label {
+            flex: 1;
+            margin: 0;
+            padding: 10px 4px;
+            text-align: center;
+            font-weight: normal;
+            border: 1.5px solid #ddd;
+            border-radius: 15px;
+            opacity: 0.5;
+        }
+        .levels label span {
+            display: block;
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+        .levels input:checked + label {
+            border-color: var(--secondary);
+            background: var(--primary);
+            opacity: 1;
+        }
+        .editing .levels label {
+            cursor: pointer;
+        }
+
+        /* your recipes */
+        .my-recipes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .my-recipe {
+            background: var(--bg);
+            border-radius: 15px;
+            padding: 10px;
+        }
+        .my-recipe h4 {
+            margin: 0 0 4px;
+        }
+        .my-recipe p {
+            margin: 0;
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        /* EDIT MODE: switches on when <body class="editing"> */
+        .edit-actions,
+        .editing .profile-name,
+        .editing .edit-btn {
+            display: none;
+        }
+        .editing .edit-actions,
+        .editing .photo-btn {
+            display: flex;
+        }
+        .editing #nameInput {
+            display: block;
+        }
+        /* when NOT editing: only show the diet/allergy pills you picked */
+        body:not(.editing) #diets input:not(:checked) + label,
+        body:not(.editing) #allergies input:not(:checked) + label,
+        body:not(.editing) #conditions input:not(:checked) + label {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="profile-top">
+            <h1>Profile</h1>
+            <button type="button" class="edit-btn" onclick="startEditing()">✏️ Edit</button>        </div>
+
+        <!-- photo + name -->
+        <div class="profile-header">
+            <div class="photo-wrap">
+                <img id="photo" src="koko_cat.png" alt="Profile photo">
+                <button type="button" class="photo-btn" onclick="document.getElementById('photoInput').click()" aria-label="Change photo">📷</button>
+                <input type="file" id="photoInput" accept="image/*" onchange="choosePhoto(this)">
+            </div>
+
+            <p class="profile-name" id="nameText"></p>
+            <input type="text" id="nameInput" placeholder="Your name" aria-label="Name">
+        </div>
+
+        <!-- dietary restrictions -->
+        <div class="white-card">
+            <h2>Dietary Restrictions</h2>
+
+            <h3>Diet</h3>
+            <div class="chips" id="diets"></div>
+            <p class="hint" id="dietsEmpty">None. Tap Edit to add.</p>
+
+            <hr>
+
+            <h3>Allergies</h3>
+            <div class="chips" id="allergies"></div>
+            <p class="hint" id="allergiesEmpty">None. Tap Edit to add.</p>
+
+            <hr>
+
+            <h3>Health Conditions</h3>
+            <div class="chips" id="conditions"></div>
+            <p class="hint" id="conditionsEmpty">None. Tap Edit to add.</p>
+
+
+        </div>
+
+        <!-- cooking level -->
+        <div class="white-card">
+            <h2>Cooking Level</h2>
+            <div class="levels">
+                <input type="radio" name="level" id="beginner" value="beginner">
+                <label for="beginner"><span>😊</span>Beginner</label>
+
+                <input type="radio" name="level" id="intermediate" value="intermediate">
+                <label for="intermediate"><span>😮</span>Intermediate</label>
+
+                <input type="radio" name="level" id="advanced" value="advanced">
+                <label for="advanced"><span>😜</span>Advanced</label>
+            </div>
+        </div>
+
+        <div class="white-card">
+            <h2>Your Recipes</h2>
+            <div class="my-recipes" id="myRecipes"></div>
+            <p class="hint" id="recipesEmpty">No recipes yet. Add one in the Recipes tab!</p>
+        </div>
+
+        <div class="buttons edit-actions">
+            <button type="button" class="btn-secondary" onclick="cancelEditing()">✕ Cancel</button>
+            <button type="button" onclick="saveProfile()">✓ Save</button>
+        </div>
+
+    </div>
+
+    <script>
+        var DIETS = ["Vegetarian", "Vegan", "Pescatarian", "Halal", "Kosher"];
+        var ALLERGIES = ["Nuts", "Dairy", "Gluten", "Shellfish", "Eggs", "Soy"];
+
+        // what a brand new profile looks like
+        var DEFAULT_PROFILE = {
+            name: "chef",
+            photo: "", //koko default :3
+            diets: [],
+            allergies: [],
+            conditions: [],
+            level: "beginner"
+        };
+
+        var newPhoto = null; // photo picked while editing, not saved yet
+
+        function loadProfile() {
+            var saved = JSON.parse(localStorage.getItem("profile") || "null");
+            return Object.assign({}, DEFAULT_PROFILE, saved);
+        }
+
+        // make one pill per option
+        function makePills(boxId, options) {
+            var box = document.getElementById(boxId);
+            options.forEach(function (option) {
+                var id = boxId + "-" + option.toLowerCase().replace(/[^a-z]/g, "");;
+                box.innerHTML +=
+                    '<input type="checkbox" id="' + id + '" value="' + option + '">' +
+                    '<label for="' + id + '">' + option + '</label>';
+            });
+        }
+        makePills("diets", DIETS);
+        makePills("allergies", ALLERGIES);
+        makePills("conditions", CONDITIONS);
+
+        // which pills are checked in a box
+        function checkedIn(boxId) {
+            var picked = [];
+            document.querySelectorAll("#" + boxId + " input:checked").forEach(function (box) {
+                picked.push(box.value);
+            });
+            return picked;
+        }
+
+        // put the saved profile onto the screen
+        function showProfile() {
+            var p = loadProfile();
+
+            document.getElementById("nameText").textContent = p.name;
+            document.getElementById("nameInput").value = p.name;
+            document.getElementById("photo").src = p.photo || "koko_cat.png";
+
+            document.querySelectorAll("#diets input").forEach(function (box) {
+                box.checked = p.diets.includes(box.value);
+            });
+            document.querySelectorAll("#allergies input").forEach(function (box) {
+                box.checked = p.allergies.includes(box.value);
+            });
+            document.querySelectorAll("#conditions input").forEach(function (box) {
+                box.checked = p.conditions.includes(box.value);
+            });
+            document.getElementById(p.level).checked = true;
+
+            updateEmptyNote();
+            lockInputs(true);
+        }
+
+        function updateEmptyNote() {
+            var editing = document.body.classList.contains("editing");
+            ["diets", "allergies", "conditions"].forEach(function (boxId) {
+                var none = checkedIn(boxId).length === 0;
+                document.getElementById(boxId + "Empty").style.display = (none && !editing) ? "block" : "none";
+            });
+        }
+
+        // stop pills + level from being clicked unless editing
+        function lockInputs(locked) {
+            document.querySelectorAll(".chips input, .levels input").forEach(function (input) {
+                input.disabled = locked;
+            });
+        }
+
+        // edit mode
+        function startEditing() {
+            document.body.classList.add("editing");
+            lockInputs(false);
+            updateEmptyNote();
+            document.getElementById("nameInput").focus();
+        }
+
+        function cancelEditing() {
+            newPhoto = null;
+            document.body.classList.remove("editing");
+            showProfile(); // throw away changes
+        }
+
+        function saveProfile() {
+            var name = document.getElementById("nameInput").value.trim();
+            if (name === "") {
+                alert("Please enter a name.");
+                return;
+            }
+
+            var old = loadProfile();
+            var profile = {
+                name: name,
+                photo: newPhoto !== null ? newPhoto : old.photo,
+                diets: checkedIn("diets"),
+                allergies: checkedIn("allergies"),
+                conditions: checkedIn("conditions"),
+                level: document.querySelector('input[name="level"]:checked').value
+            };
+            localStorage.setItem("profile", JSON.stringify(profile));
+
+            newPhoto = null;
+            document.body.classList.remove("editing");
+            showProfile();
+        }
+
+        // profile picture
+        // shrinks pic to 200x200 so it fits in localStorage
+        function choosePhoto(input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function () {
+                var img = new Image();
+                img.onload = function () {
+                    var canvas = document.createElement("canvas");
+                    canvas.width = 200;
+                    canvas.height = 200;
+                    // crop to a centered square
+                    var side = Math.min(img.width, img.height);
+                    canvas.getContext("2d").drawImage(
+                        img,
+                        (img.width - side) / 2, (img.height - side) / 2, side, side,
+                        0, 0, 200, 200
+                    );
+                    newPhoto = canvas.toDataURL("image/jpeg", 0.8);
+                    document.getElementById("photo").src = newPhoto; // preview
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+            input.value = ""; // lets you pick the same file again
+        }
+
+        // read from recipes tab data
+        function showRecipes() {
+            var recipes = JSON.parse(localStorage.getItem("recipes") || "[]");
+            var box = document.getElementById("myRecipes");
+            box.innerHTML = "";
+
+            recipes.forEach(function (recipe) {
+                var card = document.createElement("div");
+                card.className = "my-recipe";
+                card.innerHTML = "<h4></h4><p></p>";
+                card.querySelector("h4").textContent = recipe.name;
+                card.querySelector("p").textContent = recipe.difficulty + " · " + recipe.time + " min";
+                box.appendChild(card);
+            });
+
+            document.getElementById("recipesEmpty").style.display = recipes.length ? "none" : "block";
+        }
+
+        showProfile();
+        showRecipes();
+    </script>
+</body>
+</html>
