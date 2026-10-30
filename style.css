@@ -492,7 +492,7 @@ nav button.active:hover {
     font-size: 20px;
 }
 
-/* Inventory delete button */
+/*  delete button inventory */
 .delete-item {
     background: transparent;
     color: var(--highlight);
@@ -507,7 +507,7 @@ nav button.active:hover {
 }
 
 
-/* Pantry Search */
+/* search bar */
 .search-bar {
     display: flex;
     align-items: center;
@@ -539,7 +539,7 @@ nav button.active:hover {
 }
 
 
-/* Food Group Filters */
+/* food filters FF FOO FITGHTERS */
 .food-filters {
     display: flex;
     gap: 8px;
@@ -589,7 +589,7 @@ nav button.active:hover {
 }
 
 
-/* Ingredient Details Popup */
+/* ingredients popup */
 .popup {
     display: none;
     position: absolute;
