@@ -692,8 +692,7 @@ nav button.active:hover {
     margin: 0 0 10px;
 }
 
-/* PILL CHOICES: same look as the home tab's food filters
-   (hidden checkbox/radio + a label that looks like a pill) */
+/* pill choices */
 .chips {
     display: flex;
     flex-wrap: wrap;
@@ -722,7 +721,7 @@ nav button.active:hover {
     cursor: default;
 }
 
-/* two buttons side by side, e.g. Clear + Confirm, Cancel + Save */
+/* two buttons side by side*/
 .buttons {
     display: flex;
     gap: 16px;
