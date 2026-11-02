@@ -90,6 +90,24 @@
             </div>
         </div>
 
+        
+        <!-- New Receipt Popup -->
+        <div id="receiptPopup" class="popup">
+            <div class="popup-content">
+                <h2>new receipt ♡</h2>
+                <p>what should we call it, nya~?</p>
+
+                <input type="text" id="receiptName"
+                    placeholder="e.g. weekly groceries">
+
+                <div class="popup-buttons">
+                    <button class="btn-secondary" onclick="closeReceiptPopup()">Cancel</button>
+                    <button onclick="confirmReceipt()">Create ♡</button>
+                </div>
+            </div>
+        </div>
+
+
 
 
     </div>
@@ -107,23 +125,17 @@
             // activates the active button hopefully highlights in the nav bar
             button.classList.add("active");
         }
+        
         window.addEventListener("message", function(event) {
-        if (event.data.page === "add-item.html") {
-            const button = document.querySelector("nav button:nth-child(3)");
-            const iframe = document.getElementById("content");
+            if (event.data.page === "add-item.html") {
+                // Save name before changing pages
+                sessionStorage.setItem("prefillItem", event.data.name);
 
-            iframe.onload = function() {
-                iframe.contentWindow.postMessage({
-                    name: event.data.name
-                }, "*");
-                iframe.onload = null;
-            };
+                const button = document.querySelector("nav button:nth-child(3)");
+                openTab("add-item.html", button);
+            }
+        });
 
-            openTab("add-item.html", button);
-        }
-
-
-});
 
 
         // popup on click bs ts nav bar needs to get covered
@@ -193,6 +205,31 @@
             document.getElementById("removePopup").style.display = "none";
             pendingRemove = null;
         }
+
+
+        window.addEventListener("message", function(event) {
+            if (event.data.type === "newReceipt") {
+                document.getElementById("receiptPopup").style.display = "flex";
+                document.getElementById("receiptName").focus();
+            }
+        });
+
+        function closeReceiptPopup() {
+            document.getElementById("receiptPopup").style.display = "none";
+            document.getElementById("receiptName").value = "";
+        }
+
+        function confirmReceipt() {
+            const name = document.getElementById("receiptName").value.trim();
+            if (!name) return;
+
+            document.getElementById("content").contentWindow.postMessage({
+                type: "createReceipt",
+                name: name
+            }, "*");
+
+            closeReceiptPopup();
+        }       
 
 
 

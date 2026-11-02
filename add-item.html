@@ -18,25 +18,7 @@
         .stepper select {
             width: auto;
         }
-        .undo-bar {
-            position: fixed;
-            left: 20px;
-            right: 20px;
-            bottom: 20px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 10px 10px 16px;
-            background: var(--text);
-            color: var(--bg);
-            border-radius: 20px;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
-        }
-        .undo-bar button {
-            background: var(--primary);
-            color: var(--text);
-            padding: 8px 16px;
-        }
+        
     </style>
 </head>
 
@@ -130,6 +112,7 @@
         var qty = 1;
         var expEdited = false; // true once the user picks their own expiration date
         var lastAdded = null;
+        var lastReceiptId = null;
         var lastShoppingIndex = -1;
         var lastShoppingEntry = null;
         var popupTimer;
@@ -209,23 +192,37 @@
             localStorage.setItem("items", JSON.stringify(items));
 
            
-            // remove confirmed item from shopping list
-        var shoppingList = JSON.parse(localStorage.getItem("shoppingList") || "[]");
-
-        var index = shoppingList.findIndex(i => i.name === item.name);
-
-        if (index !== -1) {
-            var removed = shoppingList.splice(index, 1)[0];
-            localStorage.setItem("shoppingList", JSON.stringify(shoppingList));
-        }  
-
+            // remove confirmed item from correct shopping list
         lastAdded = item;
-        lastShoppingIndex = index;
-        lastShoppingEntry = removed;
+        lastShoppingEntry = null;
+        lastShoppingIndex = -1;
+        lastReceiptId = null;
+        const pending = JSON.parse(localStorage.getItem("pendingShoppingItem") || "null");
 
-        showPopup("Added " + item.name + "!");
+        if (pending && pending.name === item.name) {
+            const receipts = JSON.parse(localStorage.getItem("shoppingReceipts") || "[]");
+            const receipt = receipts.find(r => r.id === pending.receiptId);
+
+            if (receipt) {
+                const index = receipt.items.findIndex(i => i.name === item.name);
+
+                if (index !== -1) {
+                    lastShoppingIndex = index;
+                    lastShoppingEntry = receipt.items[index];
+                    lastReceiptId = receipt.id;
+                    receipt.items.splice(index, 1);
+                    localStorage.setItem("shoppingReceipts", JSON.stringify(receipts));
+                    localStorage.setItem("shoppingList",
+                        JSON.stringify(receipts.flatMap(r => r.items)));
+                }
+            }
+        }
+
+        localStorage.removeItem("pendingShoppingItem");
+        showPopup(item.name + " added to your pantry! ♡");
         clearForm();
         };
+
 
 
         // show the pop-up for 5 seconds
@@ -247,11 +244,24 @@
             items.pop(); // it was the last one added
             localStorage.setItem("items", JSON.stringify(items));
  
-            if (lastShoppingIndex !== -1) {
-                var shoppingList = JSON.parse(localStorage.getItem("shoppingList") || "[]");
-                shoppingList.splice(lastShoppingIndex, 0, lastShoppingEntry);
-                localStorage.setItem("shoppingList", JSON.stringify(shoppingList));
+           
+        if (lastReceiptId !== null && lastShoppingEntry) {
+            const receipts = JSON.parse(
+                localStorage.getItem("shoppingReceipts") || "[]"
+            );
+
+            const receipt = receipts.find(r => r.id === lastReceiptId);
+
+            if (receipt) {
+                receipt.items.splice(lastShoppingIndex, 0, lastShoppingEntry);
+
+                localStorage.setItem("shoppingReceipts", JSON.stringify(receipts));
+                localStorage.setItem("shoppingList", JSON.stringify(
+                    receipts.flatMap(r => r.items)
+                ));
             }
+        }
+
  
             // put everything back in the form
             document.getElementById("name").value = lastAdded.name;
@@ -267,12 +277,19 @@
             document.getElementById("popup").style.display = "none";
         }
 
-        // Prefill name when coming from Shopping List
-        window.addEventListener("message", function(event) {
-            if (event.data && event.data.name) {
-                document.getElementById("name").value = event.data.name;
-            }
-        });
+       
+      
+        // Fill item name from Shopping List
+        const pendingItem = JSON.parse(
+            localStorage.getItem("pendingShoppingItem") || "null"
+        );
+
+        if (pendingItem) {
+            document.getElementById("name").value = pendingItem.name;
+        }
+
+
+    
     </script>
 
 </body>

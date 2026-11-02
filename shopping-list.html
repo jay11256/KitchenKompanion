@@ -15,6 +15,12 @@
     <main class="container">
         <h1>Shopping List</h1>
         <p>What do we need to buy?</p>
+        
+        <!-- Receipt tabs -->
+        <div class="receipt-tabs" id="receiptTabs"></div>
+
+      
+
 
         <!-- adding-->
         <div class="card">
@@ -27,7 +33,7 @@
 
         <div class="section">
             <div class="receipt">
-    <h2>MY SHOPPING LIST</h2>
+    <h2 id="receiptTitle">MY SHOPPING LIST</h2>
     <hr>
     <div id="shoppingList"></div>
     <hr>
@@ -36,14 +42,115 @@
         </div>
     </main>
 
- 
+    <!-- Undo notification -->
+    <div id="undoBar" class="undo-bar" style="display: none;">
+        <span id="undoMessage"></span>
+        <button class="undo-button"onclick="undoDelete()">Undo</button>
+    </div>
+
 
 <script>
-    function addItem(name = "", checked = false) {
+    // load receipts, including old shopping list items
+    let receipts = JSON.parse(localStorage.getItem("shoppingReceipts") || "null");
+
+    if (!receipts || receipts.length === 0) {
+        receipts = [{
+            id: Date.now(),
+            name: "my shopping list",
+            items: JSON.parse(localStorage.getItem("shoppingList") || "[]")
+        }];
+    }
+
+    let activeReceipt = Number(localStorage.getItem("activeReceipt")) || receipts[0].id;
+
+    if (!receipts.some(r => r.id === activeReceipt)) {
+        activeReceipt = receipts[0].id;
+    }
+
+    function currentReceipt() {
+        return receipts.find(r => r.id === activeReceipt);
+    }
+
+    // save all receipts and keep old shopping list count compatible
+    function saveReceipts() {
+        localStorage.setItem("shoppingReceipts", JSON.stringify(receipts));
+        localStorage.setItem("activeReceipt", activeReceipt);
+
+        const allItems = receipts.flatMap(r => r.items);
+        localStorage.setItem("shoppingList", JSON.stringify(allItems));
+    }
+
+    // show receipt tabs
+    function showTabs() {
+        const tabs = document.getElementById("receiptTabs");
+        tabs.innerHTML = "";
+
+        receipts.forEach(receipt => {
+            const button = document.createElement("button");
+            button.textContent = receipt.name;
+
+            if (receipt.id === activeReceipt) {
+                button.classList.add("selected");
+            }
+
+            button.onclick = () => {
+                activeReceipt = receipt.id;
+                saveReceipts();
+                showTabs();
+                showItems();
+            };
+
+            tabs.appendChild(button);
+        });
+
+        const add = document.createElement("button");
+        add.textContent = "+";
+        add.onclick = () => {
+            window.parent.postMessage({ type: "newReceipt" }, "*");
+        };
+
+        tabs.appendChild(add);
+    }
+
+    
+
+   function createReceipt(name) {
+        name = name.trim();
+        if (!name) return;
+
+        const receipt = {
+            id: Date.now(),
+            name: name,
+            items: []
+        };
+
+        receipts.push(receipt);
+        activeReceipt = receipt.id;
+
+        saveReceipts();
+        showTabs();
+        showItems();
+    }
+
+    // display items from selected receipt
+    function showItems() {
+        const receipt = currentReceipt();
+        document.getElementById("receiptTitle").textContent =
+            receipt.name.toUpperCase();
+
+        const list = document.getElementById("shoppingList");
+        list.innerHTML = "";
+
+        receipt.items.forEach(item => {
+            addItem(item.name, item.checked, false);
+        });
+    }
+
+    // create shopping list row
+    function addItem(name = "", checked = false, save = true) {
         const input = document.getElementById("itemInput");
         name = name || input.value.trim();
-
-        if (name === "") return;
+        if (!name) return;
 
         const list = document.getElementById("shoppingList");
         const item = document.createElement("div");
@@ -58,17 +165,9 @@
         label.textContent = " " + name + " ";
         label.style.textDecoration = checked ? "line-through" : "none";
 
-        checkbox.addEventListener("change", () => {
+        checkbox.onchange = () => {
             label.style.textDecoration =
                 checkbox.checked ? "line-through" : "none";
-            saveList();
-        });
-
-        const remove = document.createElement("button");
-        remove.textContent = "×";
-        remove.style.fontSize = "12px";
-        remove.onclick = () => {
-            item.remove();
             saveList();
         };
 
@@ -76,20 +175,46 @@
         fridge.textContent = "Add to Fridge";
 
         fridge.onclick = () => {
+            // remember which receipt the item came from
+            localStorage.setItem("pendingShoppingItem", JSON.stringify({
+                receiptId: activeReceipt,
+                name: name
+            }));
+
             window.parent.postMessage({
                 page: "add-item.html",
                 name: name
             }, "*");
         };
 
+        const remove = document.createElement("button");
+        remove.textContent = "×";
+        remove.style.fontSize = "12px";
+
+        remove.onclick = () => {
+            const nextItem = item.nextSibling;
+            item.remove();
+            saveList();
+
+            document.getElementById("undoMessage").textContent =
+                name + " removed from shopping list!";
+            document.getElementById("undoBar").style.display = "flex";
+
+            window.undoDelete = () => {
+                list.insertBefore(item, nextItem && nextItem.parentNode === list ? nextItem : null);
+                saveList();
+                document.getElementById("undoBar").style.display = "none";
+            };
+        };
+
         item.append(checkbox, label, fridge, remove);
         list.appendChild(item);
 
         input.value = "";
-        saveList();
+        if (save) saveList();
     }
 
-    // Save shopping list as JSON in the browser
+    // save only the currently selected receipt's items
     function saveList() {
         const items = [];
 
@@ -100,23 +225,23 @@
             });
         });
 
-        localStorage.setItem("shoppingList", JSON.stringify(items));
-    }
-
-    // Restore shopping list when returning to this tab
-    function loadList() {
-        const items = JSON.parse(localStorage.getItem("shoppingList") || "[]");
-
-        items.forEach(item => {
-            addItem(item.name, item.checked);
-        });
+        currentReceipt().items = items;
+        saveReceipts();
     }
 
     document.getElementById("itemInput").addEventListener("keydown", event => {
         if (event.key === "Enter") addItem();
     });
 
-    loadList();
+    window.addEventListener("message", function(event) {
+        if (event.data.type === "createReceipt") {
+            createReceipt(event.data.name);
+        }
+    });
+
+    saveReceipts();
+    showTabs();
+    showItems();
 </script>
 
 </body>

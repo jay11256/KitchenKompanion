@@ -245,6 +245,63 @@ nav button.active:hover {
 }
 
 
+/* Receipt Tabs */
+.receipt-tabs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    overflow-x: auto;
+    margin-bottom: 16px;
+}
+
+.receipt-tabs button {
+    flex-shrink: 0;
+    background: var(--primary);
+    color: var(--text);
+    padding: 8px 14px;
+    font-size: 11px;
+    box-shadow: none;
+}
+
+.receipt-tabs button.selected {
+    background: var(--highlight);
+    color: white;
+}
+
+.receipt-tabs button:hover {
+    background: var(--secondary);
+    color: white;
+}
+
+.receipt-tabs button.selected:hover {
+    background: var(--highlight);
+}
+
+/* New Receipt Popup */
+.receipt-popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #0006;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.receipt-popup-content {
+    background: white;
+    width: 75%;
+    max-width: 350px;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 5px 15px #0003;
+}
+
+.receipt-popup input {
+    margin: 12px 0 20px;
+}
+
 
 
 /* WELCOME HEADER */
@@ -445,6 +502,33 @@ nav button.active:hover {
 }
 
 .delete-item:hover {
+    background: var(--highlight);
+    color: white;
+}
+
+
+.undo-bar {
+    position: fixed;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 10px 10px 16px;
+    background: var(--text);
+    color: var(--bg);
+    border-radius: 20px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.undo-bar button {
+    background: var(--primary);
+    color: var(--text);
+    padding: 8px 16px;
+}
+
+.undo-bar button:hover {
     background: var(--highlight);
     color: white;
 }
