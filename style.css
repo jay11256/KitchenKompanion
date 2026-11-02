@@ -1,7 +1,6 @@
 
 /* ts the google icons thing i found initially but we can change them */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Space+Mono&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Space+Mono&display=swap');
 
 
@@ -30,6 +29,8 @@ body {
     display: flex;
     flex-direction: column;
     border: 1px solid black;
+    position: relative;
+    box-sizing: border-box;
 }
 
 iframe {
@@ -122,21 +123,7 @@ input {
     border-radius: 10px;
 }
 
-/* Search Bars */
-.search-bar {
-    width: 100%;
-    margin-bottom: 20px;
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
 
-    div:first-child {
-        flex: 1;
-    }
-    div:last-child {
-        flex: 0 0 150px;
-    }
-}
 
 /* NAVIGATION BAR */
 nav {
@@ -253,54 +240,6 @@ nav button.active:hover {
     }
 }
 
-
-/* POPUPS */
-.popup-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.popup-overlay.open {
-    display: flex;
-}
-
-.popup {
-    display: none;
-    position: relative;
-    width: 85%;
-    max-height: 85%;
-    overflow-y: auto;
-    box-sizing: border-box;
-    background: var(--bg);
-    padding: 24px;
-    border-radius: 20px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.popup.open {
-    display: block;
-}
-
-.popup-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: none;
-    color: var(--text);
-    box-shadow: none;
-    padding: 4px 8px;
-    font-size: 16px;
-}
-
-.popup-close:hover {
-    background: none;
-    color: var(--highlight);
-}
 
 
 
@@ -538,6 +477,31 @@ nav button.active:hover {
     color: var(--text);
 }
 
+/* Shopping List Input */
+.shopping-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border-radius: 15px;
+    padding: 10px;
+}
+
+.shopping-input div:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.shopping-input div:last-child {
+    flex-shrink: 0;
+}
+
+.shopping-input input {
+    border: none;
+    outline: none;
+}
+
+
 
 /* food filters FF FOO FITGHTERS */
 .food-filters {
@@ -647,11 +611,50 @@ nav button.active:hover {
     margin-top: 20px;
 }
 
-.app {
-    position: relative;
-    box-sizing: border-box;
-    height: 960px
 
+
+/* PILL CHOICES */
+.food-filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+}
+
+/* All selectable pills */
+.food-filters button,
+.chips label {
+    background: var(--primary);
+    color: var(--text);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: normal;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+/* Hover */
+.food-filters button:hover,
+.chips label:hover {
+    background: var(--secondary);
+    color: white;
+}
+
+/* Selected */
+.food-filters button.selected,
+.chips input:checked + label {
+    background: var(--highlight);
+    color: white;
+}
+
+/* Keep selected color on hover */
+.food-filters button.selected:hover,
+.chips input:checked + label:hover {
+    background: var(--highlight);
 }
 
 /* profile and add item stuff */
@@ -711,10 +714,7 @@ nav button.active:hover {
 }
 .chips label {
     margin: 0;
-    font-weight: normal;
     text-align: center;
-    font-size: 12px;
-    cursor: pointer;
 }
 
 .chips input:disabled + label {
@@ -729,3 +729,50 @@ nav button.active:hover {
 .buttons button {
     flex: 1;
 }
+
+/* Inventory Quantity Controls */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.quantity-controls button {
+    background: var(--primary);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 14px;
+    box-shadow: none;
+}
+
+.quantity-controls button:hover {
+    background: var(--secondary);
+    color: white;
+}
+
+.quantity {
+    min-width: 16px;
+    text-align: center;
+    font-size: 12px;
+}
+
+
+/* Remove Item Popup */
+.popup-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.popup-buttons button {
+    flex: 1;
+    padding: 10px;
+    font-size: 11px;
+}
+
+#removePopup h2 {
+    color: var(--highlight);
+}
+

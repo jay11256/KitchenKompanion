@@ -234,7 +234,13 @@
                 <h3></h3>
                 <p></p>
             </div>
+            <div class="quantity-controls">
+                <button class="minus">−</button>
+                <span class="quantity"></span>
+                <button class="plus">+</button>
+            </div>
             <span class="expiry-tag ${urgent ? "urgent" : ""}">${expiryText}</span>
+
             <button class="delete-item">×</button>
         `;
         row.querySelector(".delete-item").onclick = () => {
@@ -250,7 +256,42 @@
         row.querySelector("h3").textContent = item.name;
         row.dataset.name = item.name.toLowerCase();
         row.dataset.group = item.group;
-        row.querySelector("p").textContent = item.quantity + " • " + item.group;
+        
+        const unit = item.unit || "units";
+
+        function updateQuantity() {
+            row.querySelector(".quantity").textContent = item.quantity;
+
+            row.querySelector("p").textContent =
+                item.quantity + " " + unit + " • " + item.group;
+
+            localStorage.setItem("items", JSON.stringify(inventoryItems));
+        }
+
+        row.querySelector(".minus").onclick = (event) => {
+            event.stopPropagation();
+            item.quantity = Math.max(0, Number(item.quantity) - 1);
+            updateQuantity();
+
+            
+            if (item.quantity === 0) {
+               window.parent.postMessage({
+            type: "removeItem",
+            name: item.name,
+            index: inventoryItems.indexOf(item)
+        }, "*");
+                }
+            
+        };
+
+        row.querySelector(".plus").onclick = (event) => {
+            event.stopPropagation();
+            item.quantity = Number(item.quantity) + 1;
+            updateQuantity();
+        };
+
+        updateQuantity();
+
         row.style.cursor = "pointer";
         row.onclick = () => {
             window.parent.postMessage({
@@ -334,6 +375,16 @@
     function closePopup() {
         document.getElementById("itemPopup").style.display = "none";
     }
+
+    
+    // Delete item after user confirms in the popup
+    window.addEventListener("message", function(event) {
+        if (event.data.type === "confirmRemove") {
+            inventoryItems.splice(event.data.index, 1);
+            localStorage.setItem("items", JSON.stringify(inventoryItems));
+            location.reload();
+        }
+    });
 
 
 
