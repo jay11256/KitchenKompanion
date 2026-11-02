@@ -555,6 +555,41 @@ nav button.active:hover {
 }
 
 
+/* RECIPE POPUPS */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #0006;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-overlay.open {
+    display: flex;
+}
+
+/* Recipe popup content */
+.popup-overlay .popup {
+    display: none;
+    position: relative;
+    width: 85%;
+    height: auto;
+    min-height: 0;
+    max-height: 85%;
+    overflow-y: auto;
+    background: var(--bg);
+    padding: 24px;
+    border-radius: 20px;
+    box-sizing: border-box;
+}
+
+.popup-overlay .popup.open {
+    display: block;
+}
+
+
 /* ingredients popup */
 .popup {
     display: none;
@@ -611,6 +646,31 @@ nav button.active:hover {
     margin-top: 20px;
 }
 
+
+/* Recipe Search Bar */
+#recipes-search {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+#recipes-search > div:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+#recipes-search > div:last-child {
+    flex: 0 0 150px;
+}
+
+#recipes-search input,
+#recipes-search select {
+    width: 100%;
+}
 
 
 /* PILL CHOICES */
