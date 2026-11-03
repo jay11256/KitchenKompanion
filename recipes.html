@@ -131,7 +131,7 @@
                 <form id="add-recipe-form">
                     <h2 id="add-recipe-form-title">Add Recipe</h2>
                     <label for="new-recipe-name">Recipe Name</label>
-                    <input type="text" id="new-recipe-name">
+                    <input type="text" id="new-recipe-name" required>
 
                     <label for="new-recipe-difficulty">Difficulty</label>
                     <select id="new-recipe-difficulty">
@@ -141,7 +141,7 @@
                     </select>
 
                     <label for="new-recipe-time">Time (minutes)</label>
-                    <input type="number" id="new-recipe-time">
+                    <input type="number" id="new-recipe-time" min="1" required>
 
                     <label>Ingredients</label>
                     <div id="ingredient-rows"></div>
