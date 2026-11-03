@@ -112,7 +112,7 @@
         <div class="recipes-grid" id="recipes-grid">
             <!-- Recipes will be dynamically inserted here -->
             <div class="card recipe-card" id="add-recipe">
-                <button onclick="openPopup('add-recipe-popup')">
+                <button onclick="openAddRecipePopup()">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
                     </svg>
@@ -129,7 +129,7 @@
             <div class="popup" id="add-recipe-popup">
                 <button class="popup-close" onclick="closePopup()" aria-label="Close">✕</button>
                 <form id="add-recipe-form">
-                    <h2>Add Recipe</h2>
+                    <h2 id="add-recipe-form-title">Add Recipe</h2>
                     <label for="new-recipe-name">Recipe Name</label>
                     <input type="text" id="new-recipe-name">
 
@@ -150,7 +150,7 @@
                     <label for="new-recipe-steps">Steps (one per line)</label>
                     <textarea id="new-recipe-steps" rows="4"></textarea>
                     
-                    <button type="submit" style="width: 100%; margin: 10px 0;">Add Recipe</button>
+                    <button type="submit" id="add-recipe-submit-btn" style="width: 100%; margin: 10px 0;">Add Recipe</button>
                     <!-- <button type="reset">Clear Form</button> -->
                 </form>
             </div>
@@ -165,6 +165,7 @@
                 <h4>Steps</h4>
                 <ol id="detail-steps"></ol>
 
+                <button type="button" id="edit-recipe-btn" class="btn-secondary" style="width: 100%; margin-top: 16px;">Edit Recipe</button>
                 <button type="button" id="delete-recipe-btn" class="btn-danger">Delete Recipe</button>
             </div>
         </div>
@@ -178,6 +179,7 @@
         const UNITS = ["", "tsp", "tbsp", "cup", "fl oz", "oz", "lb", "g", "kg",
                "pt", "qt", "gal", "L", "pack", "can", "bottle", "box", "dozen"];
         let currentRecipeId = null;
+        let editingRecipeId = null;
 
         // localStorage stuff
         function loadRecipes() {
@@ -266,15 +268,36 @@
             return [ing.quantity || "", ing.unit, ing.name].filter(Boolean).join(" ");
         }
 
-        // Create a recipe
+        // Opens the add-recipe popup, either blank (new recipe) or pre-filled for editing
+        function openAddRecipePopup(recipe = null) {
+            editingRecipeId = recipe ? recipe.id : null;
+            document.getElementById("add-recipe-form-title").textContent = recipe ? "Edit Recipe" : "Add Recipe";
+            document.getElementById("add-recipe-submit-btn").textContent = recipe ? "Save Changes" : "Add Recipe";
+
+            document.getElementById("new-recipe-name").value = recipe ? recipe.name : "";
+            document.getElementById("new-recipe-difficulty").value = recipe ? recipe.difficulty : "easy";
+            document.getElementById("new-recipe-time").value = recipe ? recipe.time : "";
+            document.getElementById("new-recipe-steps").value = recipe ? recipe.steps.join("\n") : "";
+
+            document.getElementById("ingredient-rows").innerHTML = "";
+            if (recipe && recipe.ingredients.length) {
+                recipe.ingredients.forEach(ing => addIngredientRow(ing));
+            } else {
+                addIngredientRow();
+            }
+
+            openPopup("add-recipe-popup");
+        }
+
+        // Create or update a recipe
         document.getElementById("add-recipe-form").addEventListener("submit", function (event) {
             event.preventDefault();
 
             const name = document.getElementById("new-recipe-name").value.trim();
             if (name === "") return;
 
-            const recipe = {
-                id: Date.now(),
+            const recipes = loadRecipes();
+            const fields = {
                 name: name,
                 difficulty: document.getElementById("new-recipe-difficulty").value,
                 time: Number(document.getElementById("new-recipe-time").value) || 0,
@@ -282,9 +305,15 @@
                 steps: splitLines(document.getElementById("new-recipe-steps").value)
             };
 
-            const recipes = loadRecipes();
-            recipes.push(recipe);
+            if (editingRecipeId !== null) {
+                const recipe = recipes.find(r => r.id === editingRecipeId);
+                if (recipe) Object.assign(recipe, fields);
+            } else {
+                recipes.push(Object.assign({ id: Date.now() }, fields));
+            }
+
             saveRecipes(recipes);
+            editingRecipeId = null;
             this.reset();
             resetIngredientRows();
             closePopup();
@@ -357,6 +386,15 @@
             fillList("detail-steps", recipe.steps);
             openPopup("recipe-details-popup");
         }
+
+        document.getElementById("edit-recipe-btn").addEventListener("click", function () {
+            if (currentRecipeId === null) return;
+
+            const recipe = loadRecipes().find(r => r.id === currentRecipeId);
+            if (!recipe) return;
+
+            openAddRecipePopup(recipe);
+        });
 
         document.getElementById("delete-recipe-btn").addEventListener("click", function () {
             if (currentRecipeId === null) return;
