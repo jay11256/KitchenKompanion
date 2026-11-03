@@ -86,6 +86,46 @@
             width: 100%;
             margin-bottom: 12px;
         }
+
+        .photo-wrap {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 16px;
+        }
+        .photo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+            background: var(--primary);
+            border: 3px solid var(--primary);
+            box-sizing: border-box;
+        }
+        .photo-btn {
+            position: absolute;
+            right: -8px;
+            bottom: -8px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #new-recipe-image {
+            display: none;
+        }
+
+        #detail-image {
+            width: 100%;
+            max-height: 240px;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 
@@ -130,6 +170,13 @@
                 <button class="popup-close" onclick="closePopup()" aria-label="Close">✕</button>
                 <form id="add-recipe-form">
                     <h2 id="add-recipe-form-title">Add Recipe</h2>
+
+                    <div class="photo-wrap">
+                        <img id="new-recipe-image-preview" src="assets/placeholder-recipe-icon.jpg" alt="">
+                        <button type="button" class="photo-btn" onclick="document.getElementById('new-recipe-image').click()" aria-label="Change recipe photo">📷</button>
+                        <input type="file" id="new-recipe-image" accept="image/*">
+                    </div>
+
                     <label for="new-recipe-name">Recipe Name</label>
                     <input type="text" id="new-recipe-name" required>
 
@@ -148,7 +195,7 @@
                     <button type="button" class="btn-secondary add-ingredient-btn" onclick="addIngredientRow()">+ Add Ingredient</button>
 
                     <label for="new-recipe-steps">Steps (one per line)</label>
-                    <textarea id="new-recipe-steps" rows="4"></textarea>
+                    <textarea id="new-recipe-steps" rows="4" required></textarea>
                     
                     <button type="submit" id="add-recipe-submit-btn" style="width: 100%; margin: 10px 0;">Add Recipe</button>
                     <!-- <button type="reset">Clear Form</button> -->
@@ -157,6 +204,7 @@
 
             <div class="popup" id="recipe-details-popup">
                 <button class="popup-close" onclick="closePopup()" aria-label="Close">✕</button>
+                <img id="detail-image" src="assets/placeholder-recipe-icon.jpg" alt="">
                 <h2 id="detail-name"></h2>
                 <p id="detail-difficulty"></p>
                 <p id="detail-time"></p>
@@ -178,8 +226,10 @@
         const DIFFICULTY_ORDER = { easy: 0, medium: 1, hard: 2 };
         const UNITS = ["", "tsp", "tbsp", "cup", "fl oz", "oz", "lb", "g", "kg",
                "pt", "qt", "gal", "L", "pack", "can", "bottle", "box", "dozen"];
+        const PLACEHOLDER_IMAGE = "assets/placeholder-recipe-icon.jpg";
         let currentRecipeId = null;
         let editingRecipeId = null;
+        let currentRecipeImage = null;
 
         // localStorage stuff
         function loadRecipes() {
@@ -243,9 +293,18 @@
             row.querySelector(".ing-remove").addEventListener("click", () => {
                 row.remove();
                 if (!document.querySelector("#ingredient-rows .ingredient-row")) addIngredientRow();
+                else updateFirstIngredientRequired();
             });
 
             document.getElementById("ingredient-rows").appendChild(row);
+            updateFirstIngredientRequired();
+        }
+
+        // only the first ingredient row is required
+        function updateFirstIngredientRequired() {
+            document.querySelectorAll("#ingredient-rows .ing-name").forEach((input, index) => {
+                input.required = index === 0;
+            });
         }
 
         function readIngredients() {
@@ -268,6 +327,19 @@
             return [ing.quantity || "", ing.unit, ing.name].filter(Boolean).join(" ");
         }
 
+        // Image upload preview
+        document.getElementById("new-recipe-image").addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                currentRecipeImage = reader.result;
+                document.getElementById("new-recipe-image-preview").src = currentRecipeImage;
+            };
+            reader.readAsDataURL(file);
+        });
+
         // Opens the add-recipe popup, either blank (new recipe) or pre-filled for editing
         function openAddRecipePopup(recipe = null) {
             editingRecipeId = recipe ? recipe.id : null;
@@ -278,6 +350,10 @@
             document.getElementById("new-recipe-difficulty").value = recipe ? recipe.difficulty : "easy";
             document.getElementById("new-recipe-time").value = recipe ? recipe.time : "";
             document.getElementById("new-recipe-steps").value = recipe ? recipe.steps.join("\n") : "";
+
+            document.getElementById("new-recipe-image").value = "";
+            currentRecipeImage = recipe ? recipe.image || null : null;
+            document.getElementById("new-recipe-image-preview").src = currentRecipeImage || PLACEHOLDER_IMAGE;
 
             document.getElementById("ingredient-rows").innerHTML = "";
             if (recipe && recipe.ingredients.length) {
@@ -299,6 +375,7 @@
             const recipes = loadRecipes();
             const fields = {
                 name: name,
+                image: currentRecipeImage,
                 difficulty: document.getElementById("new-recipe-difficulty").value,
                 time: Number(document.getElementById("new-recipe-time").value) || 0,
                 ingredients: readIngredients(),
@@ -314,7 +391,9 @@
 
             saveRecipes(recipes);
             editingRecipeId = null;
+            currentRecipeImage = null;
             this.reset();
+            document.getElementById("new-recipe-image-preview").src = PLACEHOLDER_IMAGE;
             resetIngredientRows();
             closePopup();
             renderRecipes();
@@ -348,11 +427,12 @@
                 const card = document.createElement("div");
                 card.className = "card recipe-card";
                 card.innerHTML = `
-                    <img src="assets/placeholder-recipe-icon.jpg" alt="">
+                    <img src="" alt="">
                     <h2></h2>
                     <h4 class="card-difficulty"></h4>
                     <h4 class="card-time"></h4>
                 `;
+                card.querySelector("img").src = recipe.image || PLACEHOLDER_IMAGE;
                 card.querySelector("h2").textContent = recipe.name;
                 card.querySelector(".card-difficulty").textContent = "Difficulty: " + capitalize(recipe.difficulty);
                 card.querySelector(".card-time").textContent = recipe.time + " min";
@@ -379,6 +459,7 @@
 
         function openRecipeDetails(recipe) {
             currentRecipeId = recipe.id;
+            document.getElementById("detail-image").src = recipe.image || PLACEHOLDER_IMAGE;
             document.getElementById("detail-name").textContent = recipe.name;
             document.getElementById("detail-difficulty").textContent = "Difficulty: " + capitalize(recipe.difficulty);
             document.getElementById("detail-time").textContent = "Time: " + recipe.time + " minutes";
