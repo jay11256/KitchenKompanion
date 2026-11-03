@@ -37,6 +37,55 @@
         .btn-danger:hover {
             background-color: var(--text);
         }
+
+        /* QUANTITY STEPPER (add item + add recipe) */
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+        .stepper button {
+            padding: 12px 14px;
+        }
+        .stepper select {
+            width: auto;
+        }
+
+        .ingredient-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ingredient-row .ing-name {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ing-qty {
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .ing-remove {
+            background: none;
+            color: var(--highlight);
+            box-shadow: none;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        .ing-remove:hover {
+            background: none;
+            color: var(--text);
+        }
+
+        .add-ingredient-btn {
+            width: 100%;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 
@@ -94,8 +143,9 @@
                     <label for="new-recipe-time">Time (minutes)</label>
                     <input type="number" id="new-recipe-time">
 
-                    <label for="new-recipe-ingredients">Ingredients (one per line)</label>
-                    <textarea id="new-recipe-ingredients" rows="4"></textarea>
+                    <label>Ingredients</label>
+                    <div id="ingredient-rows"></div>
+                    <button type="button" class="btn-secondary add-ingredient-btn" onclick="addIngredientRow()">+ Add Ingredient</button>
 
                     <label for="new-recipe-steps">Steps (one per line)</label>
                     <textarea id="new-recipe-steps" rows="4"></textarea>
@@ -125,6 +175,8 @@
     <script>
         const RECIPES_KEY = "recipes";
         const DIFFICULTY_ORDER = { easy: 0, medium: 1, hard: 2 };
+        const UNITS = ["", "tsp", "tbsp", "cup", "fl oz", "oz", "lb", "g", "kg",
+               "pt", "qt", "gal", "L", "pack", "can", "bottle", "box", "dozen"];
         let currentRecipeId = null;
 
         // localStorage stuff
@@ -145,6 +197,75 @@
             return word.charAt(0).toUpperCase() + word.slice(1);
         }
 
+        // Add ingredient rows
+        function addIngredientRow(ingredient = {}) {
+            const row = document.createElement("div");
+            row.className = "ingredient-row";
+            row.innerHTML = `
+                <input type="text" class="ing-name" placeholder="Ingredient" aria-label="Ingredient name">
+                <div class="stepper">
+                    <button type="button" class="ing-minus" aria-label="Decrease quantity">-</button>
+                    <span class="ing-qty"></span>
+                    <button type="button" class="ing-plus" aria-label="Increase quantity">+</button>
+                    <select class="ing-unit" aria-label="Unit"></select>
+                </div>
+                <button type="button" class="ing-remove" aria-label="Remove ingredient">✕</button>
+            `;
+
+            // unit dropdown
+            const select = row.querySelector(".ing-unit");
+            UNITS.forEach(unit => {
+                const option = document.createElement("option");
+                option.value = unit;
+                option.textContent = unit || "unit";
+                select.appendChild(option);
+            });
+            select.value = ingredient.unit || "";
+
+            // name
+            row.querySelector(".ing-name").value = ingredient.name || "";
+
+            // quantity stepper (same behavior as add-item: whole numbers, minimum 1)
+            let qty = ingredient.quantity || 1;
+            const qtySpan = row.querySelector(".ing-qty");
+            qtySpan.textContent = qty;
+
+            function changeQty(amount) {
+                qty = Math.max(1, qty + amount);
+                qtySpan.textContent = qty;
+            }
+            row.querySelector(".ing-minus").addEventListener("click", () => changeQty(-1));
+            row.querySelector(".ing-plus").addEventListener("click", () => changeQty(1));
+
+            // remove row (always keep at least one)
+            row.querySelector(".ing-remove").addEventListener("click", () => {
+                row.remove();
+                if (!document.querySelector("#ingredient-rows .ingredient-row")) addIngredientRow();
+            });
+
+            document.getElementById("ingredient-rows").appendChild(row);
+        }
+
+        function readIngredients() {
+            return [...document.querySelectorAll("#ingredient-rows .ingredient-row")]
+                .map(row => ({
+                    name: row.querySelector(".ing-name").value.trim(),
+                    quantity: Number(row.querySelector(".ing-qty").textContent),
+                    unit: row.querySelector(".ing-unit").value
+                }))
+                .filter(ing => ing.name !== "");
+        }
+
+        function resetIngredientRows() {
+            document.getElementById("ingredient-rows").innerHTML = "";
+            addIngredientRow();
+        }
+
+        function formatIngredient(ing) {
+            if (typeof ing === "string") return ing;
+            return [ing.quantity || "", ing.unit, ing.name].filter(Boolean).join(" ");
+        }
+
         // Create a recipe
         document.getElementById("add-recipe-form").addEventListener("submit", function (event) {
             event.preventDefault();
@@ -157,7 +278,7 @@
                 name: name,
                 difficulty: document.getElementById("new-recipe-difficulty").value,
                 time: Number(document.getElementById("new-recipe-time").value) || 0,
-                ingredients: splitLines(document.getElementById("new-recipe-ingredients").value),
+                ingredients: readIngredients(),
                 steps: splitLines(document.getElementById("new-recipe-steps").value)
             };
 
@@ -165,6 +286,7 @@
             recipes.push(recipe);
             saveRecipes(recipes);
             this.reset();
+            resetIngredientRows();
             closePopup();
             renderRecipes();
         });
@@ -231,7 +353,7 @@
             document.getElementById("detail-name").textContent = recipe.name;
             document.getElementById("detail-difficulty").textContent = "Difficulty: " + capitalize(recipe.difficulty);
             document.getElementById("detail-time").textContent = "Time: " + recipe.time + " minutes";
-            fillList("detail-ingredients", recipe.ingredients);
+            fillList("detail-ingredients", recipe.ingredients.map(formatIngredient));
             fillList("detail-steps", recipe.steps);
             openPopup("recipe-details-popup");
         }
@@ -250,6 +372,7 @@
             renderRecipes();
         });
 
+        resetIngredientRows();
         renderRecipes();
     </script>
 </body>
