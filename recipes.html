@@ -242,6 +242,39 @@
         function saveRecipes(recipes) {
             localStorage.setItem(RECIPES_KEY, JSON.stringify(recipes));
         }
+        function loadInventory() {
+            try {
+                return JSON.parse(localStorage.getItem("items")) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        // Availability of a single ingredient against the pantry:
+        // "green" = enough on hand in a matching unit
+        // "yellow" = have it but not enough (or a different unit)
+        // "red" = not in the pantry at all
+        function ingredientAvailability(ingredient) {
+            const name = ingredient.name.trim().toLowerCase();
+            const matches = loadInventory().filter(item => (item.name || "").trim().toLowerCase() === name);
+            if (matches.length === 0) return "red";
+
+            const sameUnit = matches.filter(item => (item.unit || "") === (ingredient.unit || ""));
+            const sameUnitTotal = sameUnit.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+
+            if (sameUnit.length > 0 && sameUnitTotal >= (ingredient.quantity || 0)) return "green";
+            return "yellow";
+        }
+
+        // Share of a recipe's ingredients that are fully available (1 = all green, 0 = all missing)
+        function recipeAvailabilityScore(recipe) {
+            const ingredients = recipe.ingredients.filter(ing => typeof ing !== "string");
+            if (ingredients.length === 0) return 0;
+
+            const scores = { green: 1, yellow: 0.5, red: 0 };
+            const total = ingredients.reduce((sum, ing) => sum + scores[ingredientAvailability(ing)], 0);
+            return total / ingredients.length;
+        }
         function splitLines(text) {
             return text.split("\n").map(line => line.trim()).filter(line => line !== "");
         }
@@ -421,6 +454,10 @@
                 recipes.sort((a, b) =>
                     a.time - b.time || a.name.localeCompare(b.name)
                 );
+            } else if (sortBy === "availability") {
+                recipes.sort((a, b) =>
+                    recipeAvailabilityScore(b) - recipeAvailabilityScore(a) || a.name.localeCompare(b.name)
+                );
             }
 
             recipes.forEach(recipe => {
@@ -457,13 +494,26 @@
             });
         }
 
+        const AVAILABILITY_ICONS = { green: "✅", yellow: "🟡", red: "❌" };
+
+        function fillIngredientsList(ingredients) {
+            const list = document.getElementById("detail-ingredients");
+            list.innerHTML = "";
+            ingredients.forEach(ing => {
+                const li = document.createElement("li");
+                const icon = typeof ing === "string" ? "" : AVAILABILITY_ICONS[ingredientAvailability(ing)] + " ";
+                li.textContent = icon + formatIngredient(ing);
+                list.appendChild(li);
+            });
+        }
+
         function openRecipeDetails(recipe) {
             currentRecipeId = recipe.id;
             document.getElementById("detail-image").src = recipe.image || PLACEHOLDER_IMAGE;
             document.getElementById("detail-name").textContent = recipe.name;
             document.getElementById("detail-difficulty").textContent = "Difficulty: " + capitalize(recipe.difficulty);
             document.getElementById("detail-time").textContent = "Time: " + recipe.time + " minutes";
-            fillList("detail-ingredients", recipe.ingredients.map(formatIngredient));
+            fillIngredientsList(recipe.ingredients);
             fillList("detail-steps", recipe.steps);
             openPopup("recipe-details-popup");
         }
