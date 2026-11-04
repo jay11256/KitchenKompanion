@@ -312,6 +312,17 @@
             const total = ingredients.reduce((sum, ing) => sum + scores[ingredientAvailability(ing)], 0);
             return total / ingredients.length;
         }
+
+        const AVAILABILITY_ICONS = { green: "✅", yellow: "🟡", red: "❌" };
+
+        // Overall availability of a recipe: green if every ingredient is on
+        // hand, red if none of them are, yellow for anything in between
+        function recipeAvailabilityStatus(recipe) {
+            const score = recipeAvailabilityScore(recipe);
+            if (score === 1) return "green";
+            if (score === 0) return "red";
+            return "yellow";
+        }
         function splitLines(text) {
             return text.split("\n").map(line => line.trim()).filter(line => line !== "");
         }
@@ -507,7 +518,7 @@
                     <h4 class="card-time"></h4>
                 `;
                 card.querySelector("img").src = recipe.image || PLACEHOLDER_IMAGE;
-                card.querySelector("h2").textContent = recipe.name;
+                card.querySelector("h2").textContent = AVAILABILITY_ICONS[recipeAvailabilityStatus(recipe)] + " " + recipe.name;
                 card.querySelector(".card-difficulty").textContent = "Difficulty: " + capitalize(recipe.difficulty);
                 card.querySelector(".card-time").textContent = recipe.time + " min";
 
@@ -555,8 +566,6 @@
             saveRecipes(recipes);
             renderFavoriteButton(recipe);
         });
-
-        const AVAILABILITY_ICONS = { green: "✅", yellow: "🟡", red: "❌" };
 
         function fillIngredientsList(ingredients) {
             const list = document.getElementById("detail-ingredients");
