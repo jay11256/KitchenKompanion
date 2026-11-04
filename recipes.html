@@ -160,6 +160,24 @@
             width: 22px;
             height: 22px;
         }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+        }
+
+        .radio-group input {
+            width: auto;
+        }
     </style>
 </head>
 
@@ -250,8 +268,25 @@
                 <h4>Steps</h4>
                 <ol id="detail-steps"></ol>
 
-                <button type="button" id="edit-recipe-btn" class="btn-secondary" style="width: 100%; margin-top: 16px;">Edit Recipe</button>
+                <button type="button" id="open-add-to-shopping-btn" class="btn-secondary" style="width: 100%; margin-top: 16px;">Add to Shopping List</button>
+                <button type="button" id="edit-recipe-btn" class="btn-secondary" style="width: 100%; margin-top: 10px;">Edit Recipe</button>
                 <button type="button" id="delete-recipe-btn" class="btn-danger">Delete Recipe</button>
+            </div>
+
+            <div class="popup" id="add-to-shopping-popup">
+                <button class="popup-close" onclick="closePopup()" aria-label="Close">✕</button>
+                <h2>Add to Shopping List</h2>
+
+                <label>Ingredients to add</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="shopping-preset" value="all" checked> All ingredients</label>
+                    <label><input type="radio" name="shopping-preset" value="missing"> Missing ingredients only</label>
+                </div>
+
+                <label for="shopping-list-select">Shopping list</label>
+                <select id="shopping-list-select"></select>
+
+                <button type="button" id="confirm-add-to-shopping-btn" style="width: 100%; margin-top: 16px;">Add to List</button>
             </div>
         </div>
 
@@ -592,6 +627,74 @@
             fillList("detail-steps", recipe.steps);
             openPopup("recipe-details-popup");
         }
+
+        // Shopping lists are stored as "receipts" (shopping-list.html's term for separate lists)
+        function loadShoppingReceipts() {
+            let receipts = JSON.parse(localStorage.getItem("shoppingReceipts") || "null");
+            if (!receipts || receipts.length === 0) {
+                receipts = [{
+                    id: Date.now(),
+                    name: "my shopping list",
+                    items: JSON.parse(localStorage.getItem("shoppingList") || "[]")
+                }];
+            }
+            return receipts;
+        }
+
+        function saveShoppingReceipts(receipts) {
+            localStorage.setItem("shoppingReceipts", JSON.stringify(receipts));
+            localStorage.setItem("shoppingList", JSON.stringify(receipts.flatMap(r => r.items)));
+        }
+
+        document.getElementById("open-add-to-shopping-btn").addEventListener("click", function () {
+            if (currentRecipeId === null) return;
+
+            const select = document.getElementById("shopping-list-select");
+            const receipts = loadShoppingReceipts();
+            select.innerHTML = "";
+            receipts.forEach(receipt => {
+                const option = document.createElement("option");
+                option.value = receipt.id;
+                option.textContent = receipt.name;
+                select.appendChild(option);
+            });
+
+            const activeReceipt = Number(localStorage.getItem("activeReceipt"));
+            if (receipts.some(r => r.id === activeReceipt)) select.value = activeReceipt;
+
+            document.querySelector('input[name="shopping-preset"][value="all"]').checked = true;
+            openPopup("add-to-shopping-popup");
+        });
+
+        document.getElementById("confirm-add-to-shopping-btn").addEventListener("click", function () {
+            if (currentRecipeId === null) return;
+
+            const recipe = loadRecipes().find(r => r.id === currentRecipeId);
+            if (!recipe) return;
+
+            const preset = document.querySelector('input[name="shopping-preset"]:checked').value;
+            const ingredients = recipe.ingredients.filter(ing => typeof ing !== "string");
+            const selected = preset === "missing"
+                ? ingredients.filter(ing => ingredientAvailability(ing) !== "green")
+                : ingredients;
+
+            if (selected.length === 0) {
+                alert(preset === "missing" ? "You already have everything for this recipe!" : "This recipe has no ingredients to add.");
+                return;
+            }
+
+            const receipts = loadShoppingReceipts();
+            const listId = Number(document.getElementById("shopping-list-select").value);
+            const receipt = receipts.find(r => r.id === listId);
+            if (!receipt) return;
+
+            selected.forEach(ing => {
+                receipt.items.push({ name: ing.name, checked: false });
+            });
+
+            saveShoppingReceipts(receipts);
+            closePopup();
+        });
 
         document.getElementById("edit-recipe-btn").addEventListener("click", function () {
             if (currentRecipeId === null) return;
