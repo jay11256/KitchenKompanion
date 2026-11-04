@@ -628,7 +628,7 @@
             openPopup("recipe-details-popup");
         }
 
-        // Shopping lists are stored as "receipts" (shopping-list.html's term for separate lists)
+        // Shopping list stuff
         function loadShoppingReceipts() {
             let receipts = JSON.parse(localStorage.getItem("shoppingReceipts") || "null");
             if (!receipts || receipts.length === 0) {

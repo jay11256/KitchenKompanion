@@ -221,9 +221,9 @@
         </div>
 
         <div class="white-card">
-            <h2>Your Recipes</h2>
+            <h2>Your Favorite Recipes</h2>
             <div class="my-recipes" id="myRecipes"></div>
-            <p class="hint" id="recipesEmpty">No recipes yet. Add one in the Recipes tab!</p>
+            <p class="hint" id="recipesEmpty">No recipes yet. Favorite one in the Recipes tab!</p>
         </div>
 
         <div class="buttons edit-actions">
@@ -382,9 +382,10 @@
             input.value = ""; // lets you pick the same file again
         }
 
-        // read from recipes tab data
+        // read favorited recipes from recipes tab data
         function showRecipes() {
-            var recipes = JSON.parse(localStorage.getItem("recipes") || "[]");
+            var recipes = JSON.parse(localStorage.getItem("recipes") || "[]")
+                .filter(function (recipe) { return recipe.favorited; });
             var box = document.getElementById("myRecipes");
             box.innerHTML = "";
 
