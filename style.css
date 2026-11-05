@@ -709,7 +709,12 @@ nav button.active:hover {
     color: var(--highlight);
     box-shadow: none;
     font-size: 20px;
-    padding: 0;
+    padding: 4px 8px;
+}
+
+.popup-close:hover {
+    background: var(--highlight);
+    color: white;
 }
 
 #popupIcon {
