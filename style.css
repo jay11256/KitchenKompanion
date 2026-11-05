@@ -1,7 +1,7 @@
 
 /* ts the google icons thing i found initially but we can change them */
 
-@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Space+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Space+Mono&family=Fragment+Mono&display=swap');
 
 
 /* COLORS + FONT */
@@ -41,16 +41,18 @@ iframe {
 }
 
 /* instead of the allure style initially chosen, but i kinda want another cursive font to say the hello, name part like apple has the fancy hello*/
+h1, h2 {
+    font-family: 'Fragment Mono', monospace;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
 h1 {
-    font-family: 'Pacifico', cursive;
-    font-size: 40px;
-    font-weight: normal;
+    font-size: 32px;
 }
 
 h2 {
-    font-family: 'Space Mono', monospace;
     font-size: 20px;
-    font-weight: 600;
 }
 
 
@@ -331,8 +333,9 @@ nav button.active:hover {
 
 .welcome h1 {
     font-family: 'Pacifico', cursive;
-    font-size: 23px;
+    font-size: 30px;
     font-weight: normal;
+    text-transform: none;
     color: var(--text);
     margin: 5px 0;
 }
